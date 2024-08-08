@@ -1,0 +1,176 @@
+{% extends "index.html" %}
+{% load static %}
+{% block bodyGestion_client %}
+<link rel="stylesheet" href="{% static 'css/gestion_client.css' %}">
+{% include "pages/ajouter_client.html" %}
+<div class="h4 ml-3"><h2>Listes de clients</h2></div>
+<div class="ListeClient">
+    {% for client in clients %}
+    <div class="information_sur_client" id="client{{ client.id }}">
+        <div class="attribut_client">
+            <div class="F_client" style="overflow: hidden;text-overflow: ellipsis; white-space: nowrap;">
+                <p><b>Nom:</b> {{ client.nom }}</p>
+                <p><b>Prenom:</b> {{ client.prenom }}</p>
+                <p><b>Tél:</b> {{ client.numero_telephone }}</p>
+            </div>
+            <div class="crudclient">
+                <button type="button" class="btn btn-primary btn-sm btn-modifier" data-client-id="{{ client.id }}" data-client-nom="{{ client.nom }}" data-client-prenom="{{ client.prenom }}" data-client-telephone="{{ client.numero_telephone }}" data-toggle="modal" data-target="#editClientModal">Modifier</button>
+                <button type="button" class="btn btn-danger btn-sm btn-supprimer" data-client-id="{{ client.id }}">Supprimer</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}  
+</div>
+{% include "pages/modifier_client.html" %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--#############################################les script ###########################################################-->
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#searchCite').on('input', function() {
+            var searchValue = $(this).val().toLowerCase();
+            $('.information_sur_client').each(function() {
+                var tel = $(this).find('.F_client p:contains("Tél:")').text().toLowerCase();
+                if (tel.includes(searchValue)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+        $('.btn-modifier').on('click', function() {
+            var clientId = $(this).data('client-id');
+            var clientNom = $(this).data('client-nom');
+            var clientPrenom = $(this).data('client-prenom');
+            var clientTelephone = $(this).data('client-telephone');
+            $('#edit_client_id').val(clientId);
+            $('#edit_nom').val(clientNom);
+            $('#edit_prenom').val(clientPrenom);
+            $('#edit_numero_telephone').val(clientTelephone);
+            $('#edit_modepass_chiffre').val('');
+        });
+        $('#editClientForm').on('submit', function(event) {
+            event.preventDefault();
+            var clientId = $('#edit_client_id').val();
+            var nom = $('#edit_nom').val();
+            var prenom = $('#edit_prenom').val();
+            var numeroTelephone = $('#edit_numero_telephone').val();
+            var modepassChiffre = $('#edit_modepass_chiffre').val();
+
+            $.ajax({
+                url: '{% url "modifier_client" %}', 
+                method: 'POST',
+                data: {
+                    client_id: clientId,
+                    nom: nom,
+                    prenom: prenom,
+                    numero_telephone: numeroTelephone,
+                    modepass_chiffre: modepassChiffre,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    location.reload();
+                },
+                error: function(response) {
+                    alert('Une erreur est survenue lors de la modification du client.');
+                }
+            });
+        });
+        $('.btn-supprimer').on('click', function() {
+            var clientId = $(this).data('client-id');
+        });
+        $('.btn-supprimer').on('click', function() {
+            var clientId = $(this).data('client-id');
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
+                $.ajax({
+                    url: '{% url "supprimer_client" %}',
+                    method: 'POST',
+                    data: {
+                        client_id: clientId,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        $('#client' + clientId).remove();
+                    },
+                    error: function(response) {
+                        alert('Une erreur est survenue lors de la suppression du client.');
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock bodyGestion_client %}
+
+
+
+
+
+<!--############################################# lheader  ###########################################################-->
+
+{% block header_Gestion_client %}
+<link rel="stylesheet" href="{% static 'css/header_Gestion_client.css' %}">
+<div class="header_Gestion_client">
+    <input id="searchCite" type="search" placeholder="Rechercher un client">
+</div>
+{% endblock header_Gestion_client %}

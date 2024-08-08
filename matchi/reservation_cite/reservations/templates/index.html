@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>matchi</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+</head>
+<body>
+    <div class="continair">
+        <div class="sidbar ">
+            <div class="combonate">
+                 <h3>Matchi APP</h3>
+            </div>
+            <div class="options">
+                <a href="{% url 'page_acceuil' %}" id="page_acceuil">
+                    <i class="fas fa-home fa-2x"></i><b>page d'acceuil</b>
+                </a><br><br>
+                <a href="{% url 'gestion_cite' %}" id="gestion_cite">
+                    <i class="fas fa-futbol fa-2x"></i><b>gestion de cite</b>
+                </a><br><br>
+                <a href="{% url 'gestion_client' %}" id="gestion_client">
+                    <i class="fas fa-user-tie fa-2x"></i><b>gestion de client</b>
+                </a>
+            </div>
+        </div>
+        <div class="contenu">
+            <div class="header">
+                {% block header_Gestion_cite %}{% endblock header_Gestion_cite %}
+                {% block header_Gestion_client %}{% endblock header_Gestion_client %}
+            </div><br>
+            {% block bodyGestion_cite %}{% endblock bodyGestion_cite %}
+            {% block bodyGestion_client %}{% endblock bodyGestion_client %}
+            {% block bodyAcceuil %}{% endblock bodyAcceuil %}
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <!-- Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Custom JS -->
+    <script>
+        $(document).ready(function() {
+            const activeLinkId = localStorage.getItem('activeLinkId');
+            if (activeLinkId) {
+                $('#' + activeLinkId).addClass('active-link').css({
+                    'border-left': '4px solid #49AD90',
+                    'padding': '10px',
+                });
+            }
+            $('.options a').on({
+                mouseenter: function() {
+                    $(this).css({
+                        'border-left': '4px solid #49AD90',
+                        'padding': '10px',
+                    });
+                },
+                mouseleave: function() {
+                    if (!$(this).hasClass('active-link')) {
+                        $(this).css({
+                            'border-left': 'none',
+                            'padding': '0',
+                        });
+                    }
+                }
+            });
+            $('.options a').on('click', function() {
+                $('.options a').removeClass('active-link').css({
+                    'border-left': 'none',
+                    'padding': '0',
+                });
+                $(this).addClass('active-link').css({
+                    'border-left': '4px solid #49AD90',
+                    'padding': '10px',
+                });
+                localStorage.setItem('activeLinkId', $(this).attr('id'));
+            });
+        });
+    </script>
+</body>
+</html>

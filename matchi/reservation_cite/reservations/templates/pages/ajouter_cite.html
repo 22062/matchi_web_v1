@@ -1,0 +1,123 @@
+<div class="container">
+    <button type="button" class="btn" style="background-color:#49AD90;color:white;font-weight:bold;" data-toggle="modal" data-target="#ajouterCiteModal" >
+        Ajouter Cite
+    </button>
+    <div class="modal fade" id="ajouterCiteModal" tabindex="-1" role="dialog" aria-labelledby="ajouterCiteModalLabel" aria-hidden="true" >
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" style="width:1250px;margin-left:-70%;background-color:#29282D;color:white;">
+                <div class="modal-header" style="border-bottom:2px solid #49AD90;color:#fff;">
+                    <h5 class="modal-title" id="ajouterCiteModalLabel">Ajouter Cite</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="citeForm" method="post" class="row" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="col-3">
+                            <div class="form-group mb-1">
+                                <label for="nom">Nom</label>
+                                <input type="text" class="form-control" id="nom" name="nom" required>
+                            </div>
+                            <div class="form-group mb-1">
+                                <label for="longitude">Longitude</label>
+                                <input type="number"  class="form-control" id="longitude" name="longitude" required>
+                            </div>
+                            <div class="form-group mb-1">
+                                <label for="latitude">Latitude</label>
+                                <input type="number"  class="form-control" id="latitude" name="latitude" required>
+                            </div>
+                            <div class="form-group mb-1">
+                                <label for="sonorisation_disponible">Sonorisation Disponible</label><br>
+                                <input type="radio"  id="sonorisation_disponible" name="sonorisation_disponible" value="True"> True<br>
+                                <input type="radio"  id="sonorisation_disponible" name="sonorisation_disponible" value="False"> False 
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="form-group mb-1">
+                                <label for="photo1">Photo 1</label>
+                                <input type="file" class="form-control-file" id="photo1" name="photo1" >
+                            </div>
+                            <div class="form-group mb-1">
+                                <label for="photo2">Photo 2</label>
+                                <input type="file" class="form-control-file" id="photo2" name="photo2">
+                            </div>
+                            <div class="form-group mb-1">
+                                <label for="photo3">Photo 3</label>
+                                <input type="file" class="form-control-file" id="photo3" name="photo3">
+                            </div>
+                            <div class="form-group mb-1">
+                                <label for="maillot_disponible">Maillot Disponible</label><br>
+                                <input type="radio"  id="maillot_disponible_true" name="maillot_disponible" value="True"> True<br>
+                                <input type="radio"  id="maillot_disponible_false" name="maillot_disponible" value="False"> False 
+                            </div>
+                            
+                        </div>
+                        <div class="col-3">
+                            <div class="form-group mb-1">
+                                <label for="prix_par_heure">Prix par Heure</label>
+                                <input type="number" class="form-control" id="prix_par_heure" name="prix_par_heure" required>
+                            </div>
+                            <div class="form-group mb-1">
+                                <label for="client">Client</label>
+                                <select class="form-control" id="client" name="client" required>
+                                    <option value="">selectionnez un clients</option>
+                                    {% for client in clients %}
+                                        <option value="{{ client.id }}">{{ client.nom }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="form-group mb-1">
+                                <label for="lieu">Lieu</label>
+                                <input type="text" class="form-control" id="lieu" name="lieu" required>
+                            </div>
+                            <div class="form-group mb-1" >
+                                <label for="ballon_disponible">Ballon Disponible</label><br>
+                                <input type="radio"  id="ballon_disponible_true" name="ballon_disponible" value="True"> True<br>
+                                <input type="radio"  id="ballon_disponible_false" name="ballon_disponible" value="False"> False
+                            </div>
+                            
+                            
+                            </div>
+                        <div class="col-3">
+                           
+                            <div class="form-group mb-1">
+                                <label for="nombre_joueur">Nombre de Joueurs</label>
+                                <input type="number" class="form-control" id="nombre_joueur" name="nombre_joueur" required>
+                            </div>
+                            <div class="form-group mb-1">
+                                <label for="Wilaye">Wilaye</label>
+                                <select class="form-control" id="Wilaye" name="Wilaye" required>
+                                    <option value="">selectionnez  wilayes </option>
+                                    {% for wilaye in wilayes %}
+                                        <option value="{{ wilaye.code_wilaye }}">{{ wilaye.nom_wilaye_fr}} -  {{ wilaye.nom_wilaye_Ar}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                         <div class="form-group mb-1">
+                             <label for="Moughataa">Moughataa</label>
+                             <select class="form-control" id="Moughataa" name="Moughataa" required>
+                                <option value="">selectionnez un moughataa</option>
+                                {% for moughataa in moughataa %}
+                                    <option value="{{ moughataa.id }}">{{ moughataa.nom_fr }} - {{ moughataa.nom_ar }}</option>
+                                {% endfor %}
+                             </select>
+                         </div>
+                         <div class="form-group mb-1">
+                            <label for="eclairage_disponible">Éclairage Disponible</label><br>
+                            <input type="radio"  id="eclairage_disponible_true" name="eclairage_disponible" value="True"> True <br>
+                            <input type="radio"  id="eclairage_disponible_false" name="eclairage_disponible" value="False"> False
+                        </div>
+                         
+                        </div>
+                         <div class="ajouter_cite mt-2 ml-3">
+                             <button class="btn" type="submit" style="background-color:#49AD90;color:white;">Ajouter</button>
+                         </div>
+                     </form>
+                 </div>
+             </div>
+         </div>
+       
+     </div>
+    </div><br>

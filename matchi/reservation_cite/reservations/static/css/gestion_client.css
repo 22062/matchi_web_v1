@@ -1,0 +1,49 @@
+.ListeClient{
+    width: 100%;
+    height: 60vh;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    overflow: scroll;
+    padding-bottom: 1%;
+}
+.ListeClient::-webkit-scrollbar {
+    width: 1px;
+}
+
+.ListeClient::-webkit-scrollbar-track {
+    background: #fff; /* couleur de fond du défilement */
+}
+
+.ListeClient::-webkit-scrollbar-thumb {
+    background: #fff; /* couleur de la barre de défilement */
+}
+.information_sur_client{
+    width: 22%;
+    height:32vh;
+    background-color:#29282D;
+    margin-left: 1%;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.75);
+    margin-top: 2%;
+}
+.attribut_client{
+    width: 100%;
+    height: 23vh;
+    padding: 20px;
+}
+.F_client p{
+    font-size: 20px;
+    color: #49AD90;
+}
+.F_client p b {
+    margin-right: 5%;
+    color: white;
+}
+.crudclient{
+    width: 100%;
+    height: 5vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
