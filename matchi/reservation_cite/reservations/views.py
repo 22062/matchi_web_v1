@@ -15,6 +15,8 @@ from rest_framework.generics import ListAPIView
 from .serializers import ReservationSerializer
 from django.views.decorators.http import require_POST
 import json
+import hashlib
+
 # import re
 # from .models import cite as CiteModel  # Renommer l'import pour éviter les conflits de noms
 
@@ -202,6 +204,32 @@ def login_client(request):
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
     except Client.DoesNotExist:
         return Response({'error': 'Client does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def add_client(request):
+    numero_telephone = request.data.get('numero_telephone')
+    modepass_chiffre = request.data.get('modepass_chiffre')
+    nom = request.data.get('nom')
+    prenom = request.data.get('prenom')
+    hashed_password = hashlib.md5(modepass_chiffre.encode()).hexdigest()
+
+    try:
+        client = Client.objects.create(nom=nom,prenom=prenom,modepass_chiffre=hashed_password,numero_telephone=numero_telephone)
+        return Response({"message":"Done!"},status=201)
+        # if check_password(modepass_chiffre, client.modepass_chiffre):
+        #     return Response({'message': 'Login successful', 'client_id': client.id}, status=status.HTTP_200_OK)
+        # else:
+        #     return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+    except Client.DoesNotExist:
+        return Response({'error': 'Client does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
 
 class ClientCreateView(generics.CreateAPIView):
     queryset = Client.objects.all()

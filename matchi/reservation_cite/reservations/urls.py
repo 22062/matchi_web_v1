@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.urls import include, path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
+
 from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register(r'terrains', views.TerrainViewSet, basename='terrain')
@@ -40,6 +43,15 @@ urlpatterns = [
     path('joueurs/register/', views.JoueurCreateView.as_view(), name='joueur-register'),
     path('client/<int:client_id>/reservations/', views.client_reservations, name='client_reservations'),
     path('add-indisponibilite/', views.AddIndisponibiliteView.as_view(), name='add_indisponibilite'),
+
+
+
+
+
+    # **************************************************************************( mobile APIs)********************************************************************
+
+        path('AddClient/', views.add_client, name='AddClient'),
+
   
 ]
 
@@ -47,6 +59,9 @@ urlpatterns = [
 
 
 
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
 
