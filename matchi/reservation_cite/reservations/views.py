@@ -16,6 +16,10 @@ from .serializers import ReservationSerializer
 from django.views.decorators.http import require_POST
 import json
 import hashlib
+from .serializers import WilayeSerializer
+from rest_framework import generics
+from .models import Wilaye, Moughataa
+from .serializers import WilayeSerializer, MoughataaSerializer
 
 # import re
 # from .models import cite as CiteModel  # Renommer l'import pour éviter les conflits de noms
@@ -207,15 +211,20 @@ def login_client(request):
 
 
 @api_view(['POST'])
-def add_client(request):
+def add_player(request):
     numero_telephone = request.data.get('numero_telephone')
-    modepass_chiffre = request.data.get('modepass_chiffre')
-    nom = request.data.get('nom')
-    prenom = request.data.get('prenom')
-    hashed_password = hashlib.md5(modepass_chiffre.encode()).hexdigest()
+    password = request.data.get('password')
+    nom_joueur = request.data.get('nom')
+    prenom_joueur = request.data.get('prenom')
+    #hashed_password = hashlib.md5(password.encode()).hexdigest()
 
     try:
-        client = Client.objects.create(nom=nom,prenom=prenom,modepass_chiffre=hashed_password,numero_telephone=numero_telephone)
+        joueur = Joueurs.objects.create(
+    nom_joueur=nom_joueur,
+    prenom_joueur=prenom_joueur,
+    password=password,
+    numero_telephone=numero_telephone
+)
         return Response({"message":"Done!"},status=201)
         # if check_password(modepass_chiffre, client.modepass_chiffre):
         #     return Response({'message': 'Login successful', 'client_id': client.id}, status=status.HTTP_200_OK)
@@ -252,12 +261,47 @@ def get_terrain_info(request, client_id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 def get_all_terrains(request):
     try:
-        terrains = Terrains.objects.all()
-        serializer = TerrainSerializer(terrains, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # Récupérer tous les terrains avec les objets liés
+        terrains = Terrains.objects.all().select_related('wilaye', 'moughataa')
+        terrain_list = []
+        
+        # Parcourir chaque terrain et construire la réponse
+        for terrain in terrains:
+            terrain_data = {
+                'nom_fr': terrain.nom_fr,
+                'nom_ar': terrain.nom_ar,
+                'longitude': terrain.longitude,
+                'latitude': terrain.latitude,
+                'nombre_joueur': terrain.nombre_joueur,
+                'lieu_fr': terrain.lieu_fr,
+                'lieu_ar': terrain.lieu_ar,
+ 'photo1': request.build_absolute_uri(terrain.photo1.url) if terrain.photo1 else None,
+                'photo2': request.build_absolute_uri(terrain.photo2.url) if terrain.photo2 else None,
+                'photo3': request.build_absolute_uri(terrain.photo3.url) if terrain.photo3 else None,
+                'prix_par_heure': terrain.prix_par_heure,
+                'client': terrain.client.nom,  # Utiliser le nom du client au lieu de l'ID
+                'wilaye_nom_fr': terrain.wilaye.nom_wilaye_fr if terrain.wilaye else None,
+                'wilaye_nom_ar': terrain.wilaye.nom_wilaye_Ar if terrain.wilaye else None,
+                'moughataa_nom_fr': terrain.moughataa.nom_fr if terrain.moughataa else None,
+                'moughataa_nom_ar': terrain.moughataa.nom_ar if terrain.moughataa else None,
+                'heure_ouverture': terrain.heure_ouverture,
+                'heure_fermeture': terrain.heure_fermeture,
+                'ballon_disponible': terrain.ballon_disponible,
+                'maillot_disponible': terrain.maillot_disponible,
+                'eclairage_disponible': terrain.eclairage_disponible,
+                'siffler': terrain.siffler,
+                'parking': terrain.parking,
+                'eau': terrain.eau,
+                'gazon_artificiel': terrain.gazon_artificiel
+            }
+            terrain_list.append(terrain_data)
+        
+        return Response(terrain_list, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class TerrainViewSet(viewsets.ModelViewSet):
@@ -351,22 +395,7 @@ class JoueurCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class LoginView(APIView):
-    def post(self, request):
-        numero_telephone = request.data.get('numero_telephone')
-        password = request.data.get('password')
 
-        try:
-            joueur = Joueurs.objects.get(numero_telephone=numero_telephone)
-        except Joueurs.DoesNotExist:
-            return Response({"error": "Numéro de téléphone ou mot de passe incorrect"}, status=status.HTTP_400_BAD_REQUEST)
-
-        if joueur.password and check_password(password, joueur.password):
-            response = {"id": joueur.pk}
-            print(f"Response: {response}")  # Debugging line
-            return Response(response, status=status.HTTP_200_OK)
-        else:
-            return Response({"error": "Numéro de téléphone ou mot de passe incorrect"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class JoueursListView(ListAPIView):
@@ -529,3 +558,37 @@ class AddIndisponibiliteView(View):
             # Temporairement utiliser raise pour voir l'erreur complète
             raise
             # return JsonResponse({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+def login_joueur(request):
+    numero_telephone = request.data.get('numero_telephone')
+    password = request.data.get('password')
+    
+    try:
+        joueur = Joueurs.objects.get(numero_telephone=numero_telephone)
+        if check_password(password, joueur.password):
+            response_data = {
+                'id': joueur.id,
+                'nom_joueur': joueur.nom_joueur,
+                'prenom_joueur': joueur.prenom_joueur,
+                'numero_telephone': joueur.numero_telephone,
+                'poste': joueur.poste,
+                'age': joueur.age,
+                'height': joueur.height,
+                'weight': joueur.weight,
+                'photo_de_profile': joueur.photo_de_profile.url if joueur.photo_de_profile else None,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid password'}, status=status.HTTP_401_UNAUTHORIZED)
+    except Joueurs.DoesNotExist:
+        return Response({'error': 'Player not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class WilayeList(generics.ListAPIView):
+    queryset = Wilaye.objects.all()
+    serializer_class = WilayeSerializer
+
+class MoughataaList(generics.ListAPIView):
+    queryset = Moughataa.objects.all()
+    serializer_class = MoughataaSerializer

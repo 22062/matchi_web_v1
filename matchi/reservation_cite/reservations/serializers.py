@@ -1,5 +1,5 @@
 from rest_framework import serializers 
-from .models import Client, Joueurs, Terrains, Reservations
+from .models import Client, Joueurs, Terrains, Reservations,Moughataa
 from django.contrib.auth.hashers import make_password
 
 
@@ -34,3 +34,23 @@ class JoueurSerializer(serializers.ModelSerializer):
         validated_data['password'] = make_password(validated_data['password'])
         joueur = Joueurs.objects.create(**validated_data)
         return joueur
+from rest_framework import serializers
+from .models import Wilaye, Terrains
+
+class WilayeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Wilaye
+        fields = ['code_wilaye', 'nom_wilaye_Ar', 'nom_wilaye_fr']
+
+class TerrainsSerializer(serializers.ModelSerializer):
+    wilaye = WilayeSerializer()
+
+    class Meta:
+        model = Terrains
+        fields = '__all__'
+class MoughataaSerializer(serializers.ModelSerializer):
+    wilaye = WilayeSerializer()
+
+    class Meta:
+        model = Moughataa
+        fields = '__all__'

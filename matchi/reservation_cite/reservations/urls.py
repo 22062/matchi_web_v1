@@ -31,7 +31,6 @@ urlpatterns = [
     path('heures-disponibles/<int:client_id>/', views.heures_disponibles, name='heures_disponibles'),
     path('terrains/', views.TerrainsListView.as_view(), name='terrains-list'),
     path('terrains/<int:terrain_id>/available-schedules/', views.terrain_heures_disponibles, name='available_schedules'),
-    path('joueurs/login/', views.LoginView.as_view(), name='joueur-login'),
     path('joueurs/', views.JoueursListView.as_view(), name='joueurs-list'),
     path('joueurs/<int:joueur_id>/', views.joueur_detail, name='joueur_details'),
     path('faire_reservation/', views.faire_reservation, name='faire_reservation'),
@@ -43,6 +42,8 @@ urlpatterns = [
     path('joueurs/register/', views.JoueurCreateView.as_view(), name='joueur-register'),
     path('client/<int:client_id>/reservations/', views.client_reservations, name='client_reservations'),
     path('add-indisponibilite/', views.AddIndisponibiliteView.as_view(), name='add_indisponibilite'),
+    path('wilayes/', views.WilayeList.as_view(), name='wilaye-list'),
+    path('moughataas/', views.MoughataaList.as_view(), name='moughataa-list'),
 
 
 
@@ -50,7 +51,8 @@ urlpatterns = [
 
     # **************************************************************************( mobile APIs)********************************************************************
 
-        path('AddClient/', views.add_client, name='AddClient'),
+    path('AddPlayer/', views.add_player, name='AddPlayer'),
+    path("LoginPlayer/", views.login_joueur, name='LoginPlayer')
 
   
 ]
