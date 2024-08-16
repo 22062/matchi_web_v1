@@ -27,7 +27,7 @@ class ReservationSerializer(serializers.ModelSerializer):
 class JoueurSerializer(serializers.ModelSerializer):
     class Meta:
         model = Joueurs
-        fields = ['nom_joueur', 'prenom_joueur', 'numero_telephone', 'password']
+        fields = '__all__'
 
     def create(self, validated_data):
         # Hash the password before saving the user

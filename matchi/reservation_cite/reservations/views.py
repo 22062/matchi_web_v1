@@ -497,11 +497,13 @@ def list_reservations(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
 @api_view(['PATCH'])
 def update_player(request, player_id):
+    # print(request.data)
     try:
         joueur = get_object_or_404(Joueurs, pk=player_id)
-        
+        # print(request.data)
         # Utilisation de request.data pour récupérer les données JSON
         serializer = JoueurSerializer(instance=joueur, data=request.data, partial=True)
         
@@ -514,8 +516,44 @@ def update_player(request, player_id):
     except Joueurs.DoesNotExist:
         return Response({'error': 'Player not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
+        print(e)
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
       
+
+import os
+from django.core.files.storage import default_storage
+from django.utils.crypto import get_random_string
+
+@api_view(['POST'])
+def uploadProfileImage(request, player_id):
+    try:
+        # Retrieve the player instance by ID
+        player = Joueurs.objects.get(pk=player_id)
+
+        # Access the uploaded file
+        image = request.FILES.get('image')
+
+        if not image:
+            return Response({'error': 'No image uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Generate a new filename using player_id and a random string
+        extension = os.path.splitext(image.name)[1]  # Get the file extension
+        new_filename = f"{player_id}_{get_random_string(8)}{extension}"
+
+        # Save the file with the new name
+        image.name = new_filename
+        player.photo_de_profile = image
+        # player.image=new_filename
+        player.save()
+
+        return Response({'message': 'Image uploaded successfully', 'filename': new_filename}, status=status.HTTP_200_OK)
+    except Joueurs.DoesNotExist:
+        return Response({'error': 'Player not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(e)
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 def client_reservations(request, client_id):
     client = get_object_or_404(Client, id=client_id)
     reservations = Reservations.objects.filter(terrain__client=client).select_related('terrain', 'joueur')
@@ -563,6 +601,8 @@ class AddIndisponibiliteView(View):
 def login_joueur(request):
     numero_telephone = request.data.get('numero_telephone')
     password = request.data.get('password')
+    print("tel : " ,numero_telephone)
+    print("pwd : " ,password)
     
     try:
         joueur = Joueurs.objects.get(numero_telephone=numero_telephone)

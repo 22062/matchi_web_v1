@@ -57,7 +57,9 @@ class Joueurs(models.Model):
     age = models.IntegerField(null=True, blank=True)
     height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    photo_de_profile = models.ImageField(upload_to='images', blank=True, null=True)
+    # image = models.CharField(max_length=100)
+
+    photo_de_profile = models.ImageField(upload_to='images/', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if self.password and not self.pk:

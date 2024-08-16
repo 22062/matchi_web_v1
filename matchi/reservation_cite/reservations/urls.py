@@ -39,11 +39,16 @@ urlpatterns = [
     path('reservations/<int:joueur_id>/', views.ReservationsJoueurView.as_view(), name='reservations-joueur'),
     path('reservations/', views.list_reservations, name='joueur_reservations'),
     path('joueurs/<int:player_id>/update/', views.update_player, name='update_player'),
+    path('joueurs/<int:player_id>/uploadProfileImage/', views.uploadProfileImage, name='uploadProfileImage'),
+    # /joueurs/$playerId/uploadProfileImage/
     path('joueurs/register/', views.JoueurCreateView.as_view(), name='joueur-register'),
     path('client/<int:client_id>/reservations/', views.client_reservations, name='client_reservations'),
     path('add-indisponibilite/', views.AddIndisponibiliteView.as_view(), name='add_indisponibilite'),
     path('wilayes/', views.WilayeList.as_view(), name='wilaye-list'),
     path('moughataas/', views.MoughataaList.as_view(), name='moughataa-list'),
+
+
+
 
 
 
