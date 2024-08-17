@@ -45,7 +45,7 @@ urlpatterns = [
     path('client/<int:client_id>/reservations/', views.client_reservations, name='client_reservations'),
     path('add-indisponibilite/', views.AddIndisponibiliteView.as_view(), name='add_indisponibilite'),
     path('wilayes/', views.WilayeList.as_view(), name='wilaye-list'),
-    path('moughataas/', views.MoughataaList.as_view(), name='moughataa-list'),
+    path('moughataas/<int:code_wilaye>/', views.get_moughataas, name='get_moughataas'),
 
 
 

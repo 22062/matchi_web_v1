@@ -60,6 +60,8 @@ class Joueurs(models.Model):
     # image = models.CharField(max_length=100)
 
     photo_de_profile = models.ImageField(upload_to='images/', blank=True, null=True)
+    wilaye = models.ForeignKey('Wilaye', on_delete=models.CASCADE ,null=True)
+    moughataa = models.ForeignKey(Moughataa, on_delete=models.CASCADE, default=None, null=True)
 
     def save(self, *args, **kwargs):
         if self.password and not self.pk:
