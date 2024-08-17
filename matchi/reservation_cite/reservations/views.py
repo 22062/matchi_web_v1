@@ -404,6 +404,11 @@ class JoueursListView(ListAPIView):
 
 def joueur_detail(request, joueur_id):
     joueur = get_object_or_404(Joueurs, id=joueur_id)
+    
+    # Sérialiser les objets Wilaye et Moughataa
+    wilaye_data = WilayeSerializer(joueur.wilaye).data if joueur.wilaye else None
+    moughataa_data = MoughataaSerializer(joueur.moughataa).data if joueur.moughataa else None
+    
     joueur_data = {
         'id': joueur.id,
         'nom_joueur': joueur.nom_joueur,
@@ -412,8 +417,11 @@ def joueur_detail(request, joueur_id):
         'poste': joueur.poste,
         'age': joueur.age,
         'photo_de_profile': joueur.photo_de_profile.url if joueur.photo_de_profile else None,
-        # Ajoutez d'autres champs si nécessaire
+        'height': joueur.height, 
+        'weight': joueur.weight,
+        'wilaye': wilaye_data,  # Utiliser les données sérialisées'moughataa': moughataa_data,  # Utiliser les données sérialisées
     }
+
     return JsonResponse(joueur_data)
   
 @api_view(['POST'])
@@ -634,6 +642,18 @@ class WilayeList(generics.ListAPIView):
     queryset = Wilaye.objects.all()
     serializer_class = WilayeSerializer
 
-class MoughataaList(generics.ListAPIView):
-    queryset = Moughataa.objects.all()
-    serializer_class = MoughataaSerializer
+def get_moughataas(request, code_wilaye):
+    try:
+        moughataas = Moughataa.objects.filter(wilaye__code_wilaye=code_wilaye)
+        moughataa_list = [
+            {
+                "id": moughataa.id,
+                "nom_fr": moughataa.nom_fr,
+                "nom_ar": moughataa.nom_ar,
+                "wilaye": moughataa.wilaye.code_wilaye
+            }
+            for moughataa in moughataas
+        ]
+        return JsonResponse({"moughataas": moughataa_list}, safe=False)
+    except Moughataa.DoesNotExist:
+        return JsonResponse({"error": "Wilaye not found or no moughataas available"}, status=404)
