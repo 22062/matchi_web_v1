@@ -529,6 +529,11 @@ def uploadProfileImage(request, player_id):
     try:
         # Retrieve the player instance by ID
         player = Joueurs.objects.get(pk=player_id)
+        old_url = player.photo_de_profile.path
+
+        # Delete the old image file from the server if it exists
+        if os.path.exists(old_url):
+            os.remove(old_url)
 
         # Access the uploaded file
         image = request.FILES.get('image')
