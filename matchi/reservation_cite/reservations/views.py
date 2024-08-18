@@ -399,7 +399,8 @@ class JoueurCreateView(APIView):
 
 
 class JoueursListView(ListAPIView):
-    queryset = Joueurs.objects.all()
+    queryset = Joueurs.objects.filter(visible=True)
+
     serializer_class = JoueurSerializer
 
 def joueur_detail(request, joueur_id):
@@ -419,6 +420,7 @@ def joueur_detail(request, joueur_id):
         'photo_de_profile': joueur.photo_de_profile.url if joueur.photo_de_profile else None,
         'height': joueur.height, 
         'weight': joueur.weight,
+        'visible': joueur.visible,
         'wilaye': wilaye_data,  # Utiliser les données sérialisées'moughataa': moughataa_data,  # Utiliser les données sérialisées
     }
 
@@ -497,6 +499,31 @@ def joueur_reservations(request, joueur_id):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
       
+
+@api_view(['POST'])
+def ActiveDesactive(request, joueur_id):
+    try:
+        # Récupérer le joueur spécifié par son ID
+        joueur = Joueurs.objects.get(id=joueur_id)  # Use 'id' if it's the primary key
+        value = request.data.get('visible', joueur.visible)  # Get 'visible' from the request, default to current value
+        
+        # Mettre à jour la visibilité du joueur
+        joueur.visible = value
+        joueur.save()  # Save the changes to the database
+        
+        return Response({"message": "ok", "visible": joueur.visible}, status=status.HTTP_200_OK)
+    
+    except Joueurs.DoesNotExist:
+        return Response({"error": "Player not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+      
+
+
 @api_view(['GET'])
 def list_reservations(request):
     try:

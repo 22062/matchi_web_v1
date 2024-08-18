@@ -46,7 +46,7 @@ urlpatterns = [
     path('add-indisponibilite/', views.AddIndisponibiliteView.as_view(), name='add_indisponibilite'),
     path('wilayes/', views.WilayeList.as_view(), name='wilaye-list'),
     path('moughataas/<int:code_wilaye>/', views.get_moughataas, name='get_moughataas'),
-
+    path('ActiveDesactive/<int:joueur_id>/', views.ActiveDesactive, name='ActiveDesactive'),
 
 
 

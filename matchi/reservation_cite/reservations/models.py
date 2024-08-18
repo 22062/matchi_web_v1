@@ -57,17 +57,17 @@ class Joueurs(models.Model):
     age = models.IntegerField(null=True, blank=True)
     height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    visible = models.BooleanField(default=False)  # Corrected to use "False" instead of "false"
     # image = models.CharField(max_length=100)
 
     photo_de_profile = models.ImageField(upload_to='images/', blank=True, null=True)
-    wilaye = models.ForeignKey('Wilaye', on_delete=models.CASCADE ,null=True)
-    moughataa = models.ForeignKey(Moughataa, on_delete=models.CASCADE, default=None, null=True)
+    wilaye = models.ForeignKey('Wilaye', on_delete=models.CASCADE, null=True)
+    moughataa = models.ForeignKey('Moughataa', on_delete=models.CASCADE, default=None, null=True)
 
     def save(self, *args, **kwargs):
         if self.password and not self.pk:
             self.password = make_password(self.password)
         super().save(*args, **kwargs)
-
 
 class Reservations(models.Model):
     terrain = models.ForeignKey(Terrains, on_delete=models.CASCADE)
