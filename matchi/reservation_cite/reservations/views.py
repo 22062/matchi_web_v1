@@ -278,7 +278,7 @@ def get_all_terrains(request):
                 'nombre_joueur': terrain.nombre_joueur,
                 'lieu_fr': terrain.lieu_fr,
                 'lieu_ar': terrain.lieu_ar,
- 'photo1': request.build_absolute_uri(terrain.photo1.url) if terrain.photo1 else None,
+                'photo1': request.build_absolute_uri(terrain.photo1.url) if terrain.photo1 else None,
                 'photo2': request.build_absolute_uri(terrain.photo2.url) if terrain.photo2 else None,
                 'photo3': request.build_absolute_uri(terrain.photo3.url) if terrain.photo3 else None,
                 'prix_par_heure': terrain.prix_par_heure,
