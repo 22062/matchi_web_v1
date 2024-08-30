@@ -1,5 +1,5 @@
 from rest_framework import serializers 
-from .models import Client, Joueurs, Terrains, Reservations,Moughataa
+from .models import Client, Joueurs, Terrains, Reservations,Moughataa,Indisponibilites
 from django.contrib.auth.hashers import make_password
 
 
@@ -19,6 +19,10 @@ class ClientSerializer(serializers.ModelSerializer):
 class TerrainSerializer(serializers.ModelSerializer):
     class Meta:
         model = Terrains
+        fields = '__all__'
+class IndisponibiliteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Indisponibilites
         fields = '__all__'
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:

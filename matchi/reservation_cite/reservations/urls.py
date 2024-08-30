@@ -28,7 +28,7 @@ urlpatterns = [
     path('get_terrain_info/<int:client_id>/', views.get_terrain_info, name='get_terrain_info'),
     path('get_all_terrains/', views.get_all_terrains, name='get_all_terrains'),
     path('', include(router.urls)),
-    path('heures-disponibles/<int:client_id>/', views.heures_disponibles, name='heures_disponibles'),
+    path('heures-disponibles/<int:client_id>/<str:date>/', views.heures_disponibles, name='heures_disponibles'),
     path('terrains/', views.TerrainsListView.as_view(), name='terrains-list'),
     path('terrains/<int:terrain_id>/available-schedules/', views.terrain_heures_disponibles, name='available_schedules'),
     path('joueurs/', views.JoueursListView.as_view(), name='joueurs-list'),
