@@ -6,6 +6,7 @@ class Client(models.Model):
     prenom = models.CharField(max_length=100)
     numero_telephone = models.IntegerField()
     modepass_chiffre = models.CharField(max_length=128)
+    credie=models.IntegerField()
 
 class Wilaye(models.Model):
     code_wilaye = models.IntegerField(primary_key=True)
@@ -44,7 +45,7 @@ class Terrains(models.Model):
 
 
 
-    
+
 
 
 
@@ -59,7 +60,6 @@ class Joueurs(models.Model):
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     visible = models.BooleanField(default=False)  # Corrected to use "False" instead of "false"
     # image = models.CharField(max_length=100)
-
     photo_de_profile = models.ImageField(upload_to='images/', blank=True, null=True)
     wilaye = models.ForeignKey('Wilaye', on_delete=models.CASCADE, null=True)
     moughataa = models.ForeignKey('Moughataa', on_delete=models.CASCADE, default=None, null=True)
@@ -69,6 +69,7 @@ class Joueurs(models.Model):
             self.password = make_password(self.password)
         super().save(*args, **kwargs)
 
+
 class Reservations(models.Model):
     terrain = models.ForeignKey(Terrains, on_delete=models.CASCADE)
     joueur = models.ForeignKey(Joueurs, on_delete=models.CASCADE)
@@ -76,11 +77,14 @@ class Reservations(models.Model):
     heure_debut = models.TimeField()
     heure_fin = models.TimeField()
 
+
 class Indisponibilites(models.Model):
     terrain = models.ForeignKey(Terrains, on_delete=models.CASCADE)
     date_indisponibilite = models.DateField()
     heure_debut = models.TimeField()
     heure_fin = models.TimeField()
+
+
 
 class Notification(models.Model):
     contenu = models.TextField(null=True, blank=True)
@@ -94,4 +98,13 @@ class Evaluation(models.Model):
     note = models.IntegerField()  # Note sur 5 étoiles
     commentaire = models.TextField(null=True, blank=True)
     date_evaluation = models.DateTimeField(auto_now_add=True)
-    
+
+
+
+
+
+
+
+
+
+

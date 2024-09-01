@@ -6,7 +6,7 @@ from django.contrib.auth.hashers import make_password
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
-        fields = ['id', 'nom', 'prenom', 'numero_telephone', 'modepass_chiffre']
+        fields = '__all__'
         extra_kwargs = {
             'modepass_chiffre': {'write_only': True}
         }
