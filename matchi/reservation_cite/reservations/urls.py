@@ -21,6 +21,9 @@ urlpatterns = [
 #    path('', views.page_acceuil , name='page_acceuil'),
    path('register/', views.register_client, name='register_client'),
     path('login/', views.login_client, name='login_client'),
+    path('getPassword/', views.getPassword, name='getPassword'),
+    path('changePassword/', views.changePassword, name='changePassword'),
+    
     path('register/', views.ClientCreateView.as_view(), name='register_client'),
     path('add_terrain/', views.TerrainsCreateView.as_view(), name='add_terrain'),
     path('clients/', views.ClientListView.as_view(), name='list_clients'),

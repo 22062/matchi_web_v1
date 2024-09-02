@@ -187,7 +187,16 @@ from .models import Client, Terrains
 from .serializers import ClientSerializer, JoueurSerializer, TerrainSerializer,ReservationSerializer
 from django.contrib.auth.hashers import check_password
 from rest_framework import generics
+from django.contrib.auth.hashers import make_password
 
+
+
+def hash_password(password: str) -> str:
+    # Utilise pbkdf2_sha256 pour hacher le mot de passe avec 720000 itérations
+    hashed_password = make_password(password, hasher='pbkdf2_sha256')
+    return hashed_password
+
+ 
 @api_view(['POST'])
 def register_client(request):
     serializer = ClientSerializer(data=request.data)
@@ -210,6 +219,41 @@ def login_client(request):
         return Response({'error': 'Client does not exist'}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e :
         print("--------------------------------------------------",e)
+
+
+
+@api_view(['POST'])
+def getPassword(request):
+    id = request.data.get('client')
+    try:
+        client = Client.objects.get(id=id)
+        print(client.modepass_chiffre)
+        mot=client.modepass_chiffre
+        return Response(mot)
+
+    except Exception as e :
+        print("--------------------------------------------------",e)
+        return Response("Client does not exist", status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def changePassword(request):
+    id = request.data.get('client')
+    pwd=request.data.get('pwd')
+    pwd_hash=hash_password(pwd)
+    try:
+        client = Client.objects.get(id=id)
+        client.modepass_chiffre=pwd_hash
+        client.save()
+        return Response({"message":"done"})
+
+    except Exception as e :
+        print("--------------------------------------------------",e)
+        return Response({"message":"error"},  status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
 
 
 @api_view(['POST'])
