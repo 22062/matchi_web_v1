@@ -18,8 +18,14 @@ import json
 import hashlib
 from .serializers import WilayeSerializer
 from rest_framework import generics
+
 from .models import Wilaye, Moughataa,Academie
 from .serializers import WilayeSerializer, MoughataaSerializer,AcademieSerializer
+
+from .models import Wilaye, Moughataa
+from .serializers import WilayeSerializer, MoughataaSerializer,IndisponibiliteSerializer
+from django.views.decorators.http import require_http_methods
+
 
 # import re
 # from .models import cite as CiteModel  # Renommer l'import pour éviter les conflits de noms
@@ -187,7 +193,16 @@ from .models import Client, Terrains
 from .serializers import ClientSerializer, JoueurSerializer, TerrainSerializer,ReservationSerializer
 from django.contrib.auth.hashers import check_password
 from rest_framework import generics
+from django.contrib.auth.hashers import make_password
 
+
+
+def hash_password(password: str) -> str:
+    # Utilise pbkdf2_sha256 pour hacher le mot de passe avec 720000 itérations
+    hashed_password = make_password(password, hasher='pbkdf2_sha256')
+    return hashed_password
+
+ 
 @api_view(['POST'])
 def register_client(request):
     serializer = ClientSerializer(data=request.data)
@@ -208,6 +223,43 @@ def login_client(request):
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
     except Client.DoesNotExist:
         return Response({'error': 'Client does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e :
+        print("--------------------------------------------------",e)
+
+
+
+@api_view(['POST'])
+def getPassword(request):
+    id = request.data.get('client')
+    try:
+        client = Client.objects.get(id=id)
+        print(client.modepass_chiffre)
+        mot=client.modepass_chiffre
+        return Response(mot)
+
+    except Exception as e :
+        print("--------------------------------------------------",e)
+        return Response("Client does not exist", status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def changePassword(request):
+    id = request.data.get('client')
+    pwd=request.data.get('pwd')
+    pwd_hash=hash_password(pwd)
+    try:
+        client = Client.objects.get(id=id)
+        client.modepass_chiffre=pwd_hash
+        client.save()
+        return Response({"message":"done"})
+
+    except Exception as e :
+        print("--------------------------------------------------",e)
+        return Response({"message":"error"},  status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
 
 
 @api_view(['POST'])
@@ -258,6 +310,7 @@ def get_terrain_info(request, client_id):
             return Response({'error': 'Terrain non trouvé'}, status=status.HTTP_404_NOT_FOUND)
         
         serializer = TerrainSerializer(terrain)
+ 
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -271,6 +324,7 @@ def get_all_terrains(request):
         # Parcourir chaque terrain et construire la réponse
         for terrain in terrains:
             terrain_data = {
+                'id': terrain.id,
                 'nom_fr': terrain.nom_fr,
                 'nom_ar': terrain.nom_ar,
                 'longitude': terrain.longitude,
@@ -307,47 +361,86 @@ def get_all_terrains(request):
 class TerrainViewSet(viewsets.ModelViewSet):
     queryset = Terrains.objects.all()
     serializer_class = TerrainSerializer
+
+
+
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from datetime import datetime
+
 @api_view(['GET'])
-def heures_disponibles(request, client_id):
+def heures_disponibles(request, client_id,date):
+    print(date)
     try:
         client = get_object_or_404(Client, pk=client_id)
+        print(client.nom)
         terrains = Terrains.objects.filter(client=client)
         
         heures_disponibles = []
+        heures_indisponibles2 = []
         
         for terrain in terrains:
+            print(terrain)
             date_today = datetime.now().date()
             date_ouverture = datetime.combine(date_today, terrain.heure_ouverture)
             date_fermeture = datetime.combine(date_today, terrain.heure_fermeture)
+            terrain_instance = Terrains.objects.get(id=7)
+            # Debug prints to check values
+            print(f"Terrain: {terrain.nom_fr}")
+            print(f"Heure d'ouverture: {date_ouverture}")
+            print(f"Heure de fermeture: {date_fermeture}")
             
-            # Récupérer toutes les réservations pour ce terrain
-            reservations = Reservations.objects.filter(terrain=terrain, date_reservation=date_today)
+            # Fetch reservations and unavailabilities
+            reservations = Reservations.objects.filter(terrain=terrain, date_reservation=date )
+            indisponibilites = Indisponibilites.objects.filter(terrain=terrain,date_indisponibilite=date )
+ 
+ 
+            # return Response(serializer.data, status=status.HTTP_200_OK)
             
-            # Récupérer toutes les indisponibilités pour ce terrain
-            indisponibilites = Indisponibilites.objects.filter(terrain=terrain, date_indisponibilite=date_today)
-            
-            # Liste des heures disponibles pour ce terrain aujourd'hui
             heures_reservees = set()
             heures_indisponibles = set()
             
             for reservation in reservations:
+                print(f"Reservation from {reservation.heure_debut} to {reservation.heure_fin}")
                 heures_reservees.update(range(reservation.heure_debut.hour, reservation.heure_fin.hour))
             
             for indisponibilite in indisponibilites:
+                print(f"Indisponibilité from {indisponibilite.heure_debut} to {indisponibilite.heure_fin} on {indisponibilite.date_indisponibilite}")
                 heures_indisponibles.update(range(indisponibilite.heure_debut.hour, indisponibilite.heure_fin.hour))
-            
-            heures_libres = sorted(list(set(range(date_ouverture.time().hour, date_fermeture.time().hour)) - heures_reservees - heures_indisponibles))
-            
+                heures_indisponibles2.append(indisponibilite.heure_debut)
+            all_hours = set(range(date_ouverture.time().hour, date_fermeture.time().hour))
+            heures_libres2 = []
+
+            for hour in all_hours:
+                if hour in heures_reservees:
+                    heures_libres2.append({'heure': hour, 'etat': 'reservé'})
+                elif hour in heures_indisponibles:
+                    heures_libres2.append({'heure': hour, 'etat': 'indisponible'})
+                else:
+                    heures_libres2.append({'heure': hour, 'etat': 'libre'})
+
+
+            print(f"Heures libres: {heures_indisponibles2}")  # Debug print for available hours            
             heures_disponibles.append({
                 'terrain': terrain.id,
-                'heures_libres': heures_libres
+                'heures_libres': heures_libres2
             })
         
         return Response(heures_disponibles, status=status.HTTP_200_OK)
     
-    except Client.DoesNotExist:
-        return Response({'error': 'Client not found'}, status=status.HTTP_404_NOT_FOUND)
-      
+    except Exception as e:
+        print("Error : ------------- ",e)
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+
+
 class TerrainsListView(APIView):
     def get(self, request):
         terrains = Terrains.objects.all()
@@ -381,6 +474,7 @@ def terrain_heures_disponibles(request, terrain_id):
         
         # Calcul des heures disponibles pour ce terrain aujourd'hui
         heures_libres = sorted(list(set(range(date_ouverture.time().hour, date_fermeture.time().hour)) - heures_reservees - heures_indisponibles))
+        print(heures_disponibles)
         
         return Response({'terrain_id': terrain.id, 'heures_libres': heures_libres}, status=status.HTTP_200_OK)
     
@@ -615,23 +709,37 @@ class AddIndisponibiliteView(View):
         try:
             body_unicode = request.body.decode('utf-8')
             body = json.loads(body_unicode)
-            heure_indisponible = str(body.get('heure_indisponible'))  # Convertir en chaîne
+            heure_indisponible = str(body.get('heure_indisponible')) 
+            date_indisponibilite = str(body.get('date_indisponibilite')) 
+            heure_fin_srt=str(body.get('heure_fin')) 
+             # Convertir en chaîne
+            print("/n /n /n ============================================", heure_indisponible)
 
             # Convertir heure_indisponible en objet time
             heure_debut = time.fromisoformat(heure_indisponible)
+            heure_fin = time.fromisoformat(heure_fin_srt)
 
             terrain_id = body.get('terrain')
 
             # Exemple de création d'une nouvelle indisponibilité
-            indisponibilite = Indisponibilites.objects.create(
-                heure_debut=heure_debut,
-                heure_fin=(heure_debut.hour + 1) % 24,  # Exemple : une heure après
-                terrain_id=terrain_id
-            )
+            try:
+                Indisponibilites.objects.get(heure_debut=heure_debut,terrain_id=terrain_id,date_indisponibilite=date_indisponibilite).delete()
+
+            except:
+
+                indisponibilite = Indisponibilites.objects.create(
+                    heure_debut=heure_debut,
+                    heure_fin=heure_fin,  # Exemple : une heure après
+                    terrain_id=terrain_id,
+                    date_indisponibilite=date_indisponibilite
+                )
             return JsonResponse({'message': 'Indisponibilité ajoutée avec succès'}, status=201)
         except ValueError as ve:
+            print("error : =========================== ",ve)
+
             return JsonResponse({'error': 'Valeur incorrecte pour heure_indisponible: {}'.format(str(ve))}, status=400)
         except Exception as e:
+            print("error : =========================== ",e)
             # Temporairement utiliser raise pour voir l'erreur complète
             raise
             # return JsonResponse({'error': str(e)}, status=500)
@@ -687,5 +795,32 @@ def get_moughataas(request, code_wilaye):
 class AcademieListCreateAPIView(generics.ListCreateAPIView):
     queryset = Academie.objects.all()
     serializer_class = AcademieSerializer
+    
+@csrf_exempt
+@require_http_methods(["PATCH"])
+def update_token(request):
+    try:
+        # Parse the JSON data
+        data = json.loads(request.body)
+        phone_number = data.get('numero_telephone')
+        token = data.get('fcm_token')
+
+        if not phone_number or not token:
+            return JsonResponse({'error': 'Numéro de téléphone ou token manquant'}, status=400)
+
+        # Get the client
+        try:
+            client = Client.objects.get(numero_telephone=phone_number)
+        except Client.DoesNotExist:
+            return JsonResponse({'error': 'Client non trouvé'}, status=404)
+
+        # Update the FCM token
+        client.fcm_token = token
+        client.save()
+
+        return JsonResponse({'message': 'Token mis à jour avec succès'})
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Données JSON invalides'}, status=400)
 
 

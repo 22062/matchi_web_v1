@@ -21,6 +21,9 @@ urlpatterns = [
 #    path('', views.page_acceuil , name='page_acceuil'),
    path('register/', views.register_client, name='register_client'),
     path('login/', views.login_client, name='login_client'),
+    path('getPassword/', views.getPassword, name='getPassword'),
+    path('changePassword/', views.changePassword, name='changePassword'),
+    
     path('register/', views.ClientCreateView.as_view(), name='register_client'),
     path('add_terrain/', views.TerrainsCreateView.as_view(), name='add_terrain'),
     path('clients/', views.ClientListView.as_view(), name='list_clients'),
@@ -28,7 +31,7 @@ urlpatterns = [
     path('get_terrain_info/<int:client_id>/', views.get_terrain_info, name='get_terrain_info'),
     path('get_all_terrains/', views.get_all_terrains, name='get_all_terrains'),
     path('', include(router.urls)),
-    path('heures-disponibles/<int:client_id>/', views.heures_disponibles, name='heures_disponibles'),
+    path('heures-disponibles/<int:client_id>/<str:date>/', views.heures_disponibles, name='heures_disponibles'),
     path('terrains/', views.TerrainsListView.as_view(), name='terrains-list'),
     path('terrains/<int:terrain_id>/available-schedules/', views.terrain_heures_disponibles, name='available_schedules'),
     path('joueurs/', views.JoueursListView.as_view(), name='joueurs-list'),
@@ -58,7 +61,8 @@ urlpatterns = [
     # **************************************************************************( mobile APIs)********************************************************************
 
     path('AddPlayer/', views.add_player, name='AddPlayer'),
-    path("LoginPlayer/", views.login_joueur, name='LoginPlayer')
+    path("LoginPlayer/", views.login_joueur, name='LoginPlayer'),
+    path('update-token/', views.update_token, name='update_token'),
 
   
 ]

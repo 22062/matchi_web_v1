@@ -6,6 +6,8 @@ class Client(models.Model):
     prenom = models.CharField(max_length=100)
     numero_telephone = models.IntegerField()
     modepass_chiffre = models.CharField(max_length=128)
+    credie = models.IntegerField()
+    fcm_token = models.CharField(max_length=255, blank=True, null=True)  # Ajouté
 
 class Wilaye(models.Model):
     code_wilaye = models.IntegerField(primary_key=True)
@@ -48,7 +50,7 @@ class Terrains(models.Model):
 
 
 
-    
+
 
 
 
@@ -63,7 +65,6 @@ class Joueurs(models.Model):
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     visible = models.BooleanField(default=False)  # Corrected to use "False" instead of "false"
     # image = models.CharField(max_length=100)
-
     photo_de_profile = models.ImageField(upload_to='images/', blank=True, null=True)
     wilaye = models.ForeignKey('Wilaye', on_delete=models.CASCADE, null=True)
     moughataa = models.ForeignKey('Moughataa', on_delete=models.CASCADE, default=None, null=True)
@@ -73,12 +74,14 @@ class Joueurs(models.Model):
             self.password = make_password(self.password)
         super().save(*args, **kwargs)
 
+
 class Reservations(models.Model):
     terrain = models.ForeignKey(Terrains, on_delete=models.CASCADE)
     joueur = models.ForeignKey(Joueurs, on_delete=models.CASCADE)
     date_reservation = models.DateField()
     heure_debut = models.TimeField()
     heure_fin = models.TimeField()
+
 
 class Indisponibilites(models.Model):
     terrain = models.ForeignKey(Terrains, on_delete=models.CASCADE)
@@ -87,12 +90,14 @@ class Indisponibilites(models.Model):
     heure_fin = models.TimeField()
 
 
+
 class Evaluation(models.Model):
     evaluateur = models.ForeignKey(Joueurs, related_name='evaluations_done', on_delete=models.CASCADE)
     evalue = models.ForeignKey(Joueurs, related_name='evaluations_received', on_delete=models.CASCADE)
     note = models.IntegerField()  # Note sur 5 étoiles
     commentaire = models.TextField(null=True, blank=True)
     date_evaluation = models.DateTimeField(auto_now_add=True)
+
 
 class Academie(models.Model):
     name_ar = models.CharField(max_length=255)  # Nom de l'académie
@@ -120,4 +125,16 @@ class DemandeReservation(models.Model):
     
     def __str__(self):
         return f"Demande de {self.joueur.nom_joueur} pour {self.terrain.nom_fr}"
+
+
       
+
+
+
+
+
+
+
+
+ 
+

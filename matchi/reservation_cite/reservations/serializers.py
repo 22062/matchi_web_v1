@@ -1,12 +1,15 @@
 from rest_framework import serializers 
-from .models import Client, Joueurs, Terrains, Reservations,Moughataa, Academie, Wilaye
+
+
+from .models import Client, Joueurs, Terrains, Reservations,Moughataa,Indisponibilites,Wilaye,Academie
+
 from django.contrib.auth.hashers import make_password
 
 
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
-        fields = ['id', 'nom', 'prenom', 'numero_telephone', 'modepass_chiffre']
+        fields = '__all__'
         extra_kwargs = {
             'modepass_chiffre': {'write_only': True}
         }
@@ -19,6 +22,10 @@ class ClientSerializer(serializers.ModelSerializer):
 class TerrainSerializer(serializers.ModelSerializer):
     class Meta:
         model = Terrains
+        fields = '__all__'
+class IndisponibiliteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Indisponibilites
         fields = '__all__'
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
