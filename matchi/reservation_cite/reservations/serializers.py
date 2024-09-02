@@ -1,5 +1,5 @@
 from rest_framework import serializers 
-from .models import Client, Joueurs, Terrains, Reservations,Moughataa
+from .models import Client, Joueurs, Terrains, Reservations,Moughataa, Academie, Wilaye
 from django.contrib.auth.hashers import make_password
 
 
@@ -24,18 +24,8 @@ class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservations
         fields = ['id', 'terrain', 'joueur', 'date_reservation', 'heure_debut', 'heure_fin']
-class JoueurSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Joueurs
-        fields = '__all__'
 
-    def create(self, validated_data):
-        # Hash the password before saving the user
-        validated_data['password'] = make_password(validated_data['password'])
-        joueur = Joueurs.objects.create(**validated_data)
-        return joueur
-from rest_framework import serializers
-from .models import Wilaye, Terrains
+
 
 class WilayeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -54,3 +44,21 @@ class MoughataaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Moughataa
         fields = '__all__'
+class AcademieSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Academie
+        fields = '__all__'
+
+class JoueurSerializer(serializers.ModelSerializer):
+    wilaye = WilayeSerializer()  # Inclure les détails de la wilaya
+    moughataa = MoughataaSerializer()  # Inclure les détails de la moughataa
+
+    class Meta:
+        model = Joueurs
+        fields = '__all__'
+
+    def create(self, validated_data):
+        # Hash the password before saving the user
+        validated_data['password'] = make_password(validated_data['password'])
+        joueur = Joueurs.objects.create(**validated_data)
+        return joueur

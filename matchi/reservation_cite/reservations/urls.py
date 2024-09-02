@@ -47,6 +47,7 @@ urlpatterns = [
     path('wilayes/', views.WilayeList.as_view(), name='wilaye-list'),
     path('moughataas/<int:code_wilaye>/', views.get_moughataas, name='get_moughataas'),
     path('ActiveDesactive/<int:joueur_id>/', views.ActiveDesactive, name='ActiveDesactive'),
+    path('academies/', views.AcademieListCreateAPIView.as_view(), name='academie-list-create'),
 
 
 

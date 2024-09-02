@@ -11,11 +11,15 @@ class Wilaye(models.Model):
     code_wilaye = models.IntegerField(primary_key=True)
     nom_wilaye_Ar = models.CharField(max_length=255, blank=True, null=True)
     nom_wilaye_fr = models.CharField(max_length=255, blank=True, null=True)
+    def __str__(self):
+        return self.nom_wilaye_Ar
 
 class Moughataa(models.Model):
     nom_fr = models.CharField(max_length=255)
     nom_ar = models.CharField(max_length=255)
     wilaye = models.ForeignKey(Wilaye, on_delete=models.CASCADE)
+    def __str__(self):
+        return self.nom_ar
 
 class Terrains(models.Model):
     nom_fr = models.CharField(max_length=255)  # Remplacement de nom par nom_fr
@@ -82,11 +86,6 @@ class Indisponibilites(models.Model):
     heure_debut = models.TimeField()
     heure_fin = models.TimeField()
 
-class Notification(models.Model):
-    contenu = models.TextField(null=True, blank=True)
-    date_creation = models.DateTimeField(auto_now_add=True)
-    est_lue = models.BooleanField(default=False)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
 
 class Evaluation(models.Model):
     evaluateur = models.ForeignKey(Joueurs, related_name='evaluations_done', on_delete=models.CASCADE)
@@ -94,4 +93,31 @@ class Evaluation(models.Model):
     note = models.IntegerField()  # Note sur 5 étoiles
     commentaire = models.TextField(null=True, blank=True)
     date_evaluation = models.DateTimeField(auto_now_add=True)
+
+class Academie(models.Model):
+    name_ar = models.CharField(max_length=255)  # Nom de l'académie
+    name_fr = models.CharField(max_length=255)  # Nom de l'académie
+    location_ar = models.CharField(max_length=255)  # Localisation de l'académie
+    location_fr = models.CharField(max_length=255)  # Localisation de l'académie
+    age_group = models.CharField(max_length=50)  # Groupe d'âge
+    photo = models.ImageField(upload_to='images', blank=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=3)
+    latitude = models.DecimalField(max_digits=10, decimal_places=3)
+    wilaye = models.ForeignKey('Wilaye', on_delete=models.CASCADE)
+    moughataa = models.ForeignKey(Moughataa, on_delete=models.CASCADE, default=None)
     
+
+    def __str__(self):
+        return self.name_fr
+class DemandeReservation(models.Model):
+    terrain = models.ForeignKey(Terrains, on_delete=models.CASCADE)
+    joueur = models.ForeignKey(Joueurs, on_delete=models.CASCADE)
+    date_reservation = models.DateField()
+    heure_debut = models.TimeField()
+    heure_fin = models.TimeField()
+    status = models.CharField(max_length=20, choices=[('En attente', 'En attente'), ('Acceptée', 'Acceptée'), ('Refusée', 'Refusée')], default='En attente')
+    date_demande = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Demande de {self.joueur.nom_joueur} pour {self.terrain.nom_fr}"
+      

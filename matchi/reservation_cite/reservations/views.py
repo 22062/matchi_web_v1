@@ -18,8 +18,8 @@ import json
 import hashlib
 from .serializers import WilayeSerializer
 from rest_framework import generics
-from .models import Wilaye, Moughataa
-from .serializers import WilayeSerializer, MoughataaSerializer
+from .models import Wilaye, Moughataa,Academie
+from .serializers import WilayeSerializer, MoughataaSerializer,AcademieSerializer
 
 # import re
 # from .models import cite as CiteModel  # Renommer l'import pour éviter les conflits de noms
@@ -397,8 +397,7 @@ class JoueurCreateView(APIView):
 
 
 
-
-class JoueursListView(ListAPIView):
+class JoueursListView(generics.ListCreateAPIView):
     queryset = Joueurs.objects.filter(visible=True)
 
     serializer_class = JoueurSerializer
@@ -684,3 +683,9 @@ def get_moughataas(request, code_wilaye):
         return JsonResponse({"moughataas": moughataa_list}, safe=False)
     except Moughataa.DoesNotExist:
         return JsonResponse({"error": "Wilaye not found or no moughataas available"}, status=404)
+# Récupérer la liste des académies
+class AcademieListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Academie.objects.all()
+    serializer_class = AcademieSerializer
+
+
