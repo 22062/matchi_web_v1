@@ -3,7 +3,7 @@ from rest_framework.authtoken.models import Token
 from datetime import date, datetime, timedelta
 import re
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Indisponibilites, Joueurs, Reservations, Wilaye , Moughataa,Client
+from .models import DemandeReservation, Indisponibilites, Joueurs, Reservations, Wilaye , Moughataa,Client
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.generics import ListAPIView
-from .serializers import ReservationSerializer
+from .serializers import DemandeReservationSerializer, ReservationSerializer
 from django.views.decorators.http import require_POST
 import json
 import hashlib
@@ -25,6 +25,7 @@ from .serializers import WilayeSerializer, MoughataaSerializer,AcademieSerialize
 from .models import Wilaye, Moughataa
 from .serializers import WilayeSerializer, MoughataaSerializer,IndisponibiliteSerializer
 from django.views.decorators.http import require_http_methods
+import requests
 
 
 # import re
@@ -796,8 +797,8 @@ class AcademieListCreateAPIView(generics.ListCreateAPIView):
     queryset = Academie.objects.all()
     serializer_class = AcademieSerializer
     
-@csrf_exempt
-@require_http_methods(["PATCH"])
+
+@api_view(["PATCH"])
 def update_token(request):
     try:
         # Parse the JSON data
@@ -824,3 +825,83 @@ def update_token(request):
         return JsonResponse({'error': 'Données JSON invalides'}, status=400)
 
 
+@api_view(['POST'])
+def create_reservation_request(request):
+    joueur_id = request.data.get('joueur_id')
+    terrain_id = request.data.get('terrain_id')
+    date_reservation = request.data.get('date_reservation')
+    heure_debut = request.data.get('heure_debut')
+    heure_fin = request.data.get('heure_fin')
+
+    try:
+        joueur = Joueurs.objects.get(id=joueur_id)
+        terrain = Terrains.objects.get(id=terrain_id)
+
+        demande = DemandeReservation(
+            joueur=joueur,
+            terrain=terrain,
+            date_reservation=date_reservation,
+            heure_debut=heure_debut,
+            heure_fin=heure_fin
+        )
+        demande.save()
+
+        # Envoyer une notification au client après la création de la demande
+        send_notification_to_client(terrain.client.fcm_token, joueur.nom_joueur, terrain.nom_fr)
+
+        return Response({'message': 'Demande de réservation créée avec succès.'}, status=status.HTTP_201_CREATED)
+    except Joueurs.DoesNotExist:
+        return Response({'error': 'Joueur non trouvé.'}, status=status.HTTP_404_NOT_FOUND)
+    except Terrains.DoesNotExist:
+        return Response({'error': 'Terrain non trouvé.'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+def send_notification_to_client(fcm_token, joueur_name, terrain_name):
+    """
+    Envoie une notification au client via Firebase Cloud Messaging.
+    """
+    if not fcm_token:
+        print("FCM token manquant, notification non envoyée.")
+        return
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'BEkQ3LLArj72HxZv76wPyBqDiWa8OxYfpz6yaMX6pZB6XWlJIrr32S7HVB2DyyFao_k30ble0H1wu7JAVshZd0Y'
+,  # Remplacez YOUR_SERVER_KEY par votre clé serveur FCM
+    }
+
+    data = {
+        "to": fcm_token,
+        "notification": {
+            "title": "Nouvelle demande de réservation",
+            "body": f"Le joueur {joueur_name} a demandé à réserver le terrain {terrain_name}.",
+            "click_action": "FLUTTER_NOTIFICATION_CLICK"
+        },
+        "data": {
+            "type": "reservation",
+            "joueur_name": joueur_name,
+            "terrain_name": terrain_name
+        }
+    }
+
+    response = requests.post('https://fcm.googleapis.com/fcm/send', headers=headers, json=data)
+    
+    if response.status_code == 200:
+        print("Notification envoyée avec succès au client.")
+    else:
+        print(f"Échec de l'envoi de la notification: {response.status_code} - {response.text}")
+
+class DemandeReservationClientView(APIView):
+    def get(self, request, client_id):
+        # Récupérer le client basé sur l'ID fourni
+        client = get_object_or_404(Client, id=client_id)
+        
+        # Récupérer toutes les demandes de réservation pour les terrains du client
+        demandes = DemandeReservation.objects.filter(terrain__client=client)
+        
+        # Sérialiser les données
+        serializer = DemandeReservationSerializer(demandes, many=True)
+        
+        # Retourner les données sérialisées
+        return Response(serializer.data, status=status.HTTP_200_OK)

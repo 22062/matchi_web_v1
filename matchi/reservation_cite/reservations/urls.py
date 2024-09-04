@@ -19,7 +19,7 @@ urlpatterns = [
 #    path('modifier_cite/<int:cite_id>/', views.modifier_cite, name='modifier_cite'),
 #    path('supprimer_cite/<int:cite_id>/', views.supprimer_cite, name='supprimer_cite'),
 #    path('', views.page_acceuil , name='page_acceuil'),
-   path('register/', views.register_client, name='register_client'),
+    path('register/', views.register_client, name='register_client'),
     path('login/', views.login_client, name='login_client'),
     path('getPassword/', views.getPassword, name='getPassword'),
     path('changePassword/', views.changePassword, name='changePassword'),
@@ -63,9 +63,12 @@ urlpatterns = [
     path('AddPlayer/', views.add_player, name='AddPlayer'),
     path("LoginPlayer/", views.login_joueur, name='LoginPlayer'),
     path('update-token/', views.update_token, name='update_token'),
+    path('create_reservation_request/', views.create_reservation_request, name='create_reservation_request'),
+    path('client/<int:client_id>/demandes-reservation/', views.DemandeReservationClientView.as_view(), name='demandes-reservation-client'),
+]
 
   
-]
+
 
 
 
