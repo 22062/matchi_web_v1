@@ -884,7 +884,7 @@ def update_token(request):
 
 def get_firebase_access_token():
     # Obtenir le chemin absolu de votre fichier JSON
-    service_account_file = os.path.join(os.path.dirname(__file__), './matchinotfications-b701b962e94f.json')
+    service_account_file = os.path.join(os.path.dirname(__file__), './matchinotfications.json')
 
     try:
         # Charger les informations d'identification du fichier JSON
