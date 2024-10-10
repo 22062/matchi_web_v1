@@ -26,6 +26,9 @@ from .models import Wilaye, Moughataa
 from .serializers import WilayeSerializer, MoughataaSerializer,IndisponibiliteSerializer
 from django.views.decorators.http import require_http_methods
 import requests
+import google.auth
+from google.oauth2 import service_account
+import google.auth.transport.requests
 
 
 # import re
@@ -372,8 +375,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime
 
+from datetime import datetime
+
 @api_view(['GET'])
-def heures_disponibles(request, client_id,date):
+def heures_disponibles(request, client_id, date):
     print(date)
     try:
         client = get_object_or_404(Client, pk=client_id)
@@ -386,35 +391,35 @@ def heures_disponibles(request, client_id,date):
         for terrain in terrains:
             print(terrain)
             date_today = datetime.now().date()
+            current_time = datetime.now().time()  # Heure actuelle
             date_ouverture = datetime.combine(date_today, terrain.heure_ouverture)
             date_fermeture = datetime.combine(date_today, terrain.heure_fermeture)
-            terrain_instance = Terrains.objects.get(id=7)
-            # Debug prints to check values
+            
+            # Debug prints pour vérifier les valeurs
             print(f"Terrain: {terrain.nom_fr}")
             print(f"Heure d'ouverture: {date_ouverture}")
             print(f"Heure de fermeture: {date_fermeture}")
             
-            # Fetch reservations and unavailabilities
-            reservations = Reservations.objects.filter(terrain=terrain, date_reservation=date )
-            indisponibilites = Indisponibilites.objects.filter(terrain=terrain,date_indisponibilite=date )
- 
- 
-            # return Response(serializer.data, status=status.HTTP_200_OK)
+            # Récupérer les réservations et les indisponibilités
+            reservations = Reservations.objects.filter(terrain=terrain, date_reservation=date)
+            indisponibilites = Indisponibilites.objects.filter(terrain=terrain, date_indisponibilite=date)
             
             heures_reservees = set()
             heures_indisponibles = set()
             
             for reservation in reservations:
-                print(f"Reservation from {reservation.heure_debut} to {reservation.heure_fin}")
+                print(f"Reservation de {reservation.heure_debut} à {reservation.heure_fin}")
                 heures_reservees.update(range(reservation.heure_debut.hour, reservation.heure_fin.hour))
             
             for indisponibilite in indisponibilites:
-                print(f"Indisponibilité from {indisponibilite.heure_debut} to {indisponibilite.heure_fin} on {indisponibilite.date_indisponibilite}")
+                print(f"Indisponibilité de {indisponibilite.heure_debut} à {indisponibilite.heure_fin} le {indisponibilite.date_indisponibilite}")
                 heures_indisponibles.update(range(indisponibilite.heure_debut.hour, indisponibilite.heure_fin.hour))
                 heures_indisponibles2.append(indisponibilite.heure_debut)
-            all_hours = set(range(date_ouverture.time().hour, date_fermeture.time().hour))
+            
+            # Exclure les heures déjà passées
+            all_hours = set(range(max(date_ouverture.time().hour, current_time.hour), date_fermeture.time().hour))  # Exclusion des heures passées
             heures_libres2 = []
-
+            
             for hour in all_hours:
                 if hour in heures_reservees:
                     heures_libres2.append({'heure': hour, 'etat': 'reservé'})
@@ -422,9 +427,8 @@ def heures_disponibles(request, client_id,date):
                     heures_libres2.append({'heure': hour, 'etat': 'indisponible'})
                 else:
                     heures_libres2.append({'heure': hour, 'etat': 'libre'})
-
-
-            print(f"Heures libres: {heures_indisponibles2}")  # Debug print for available hours            
+            
+            print(f"Heures libres: {heures_indisponibles2}")  # Debug print des heures disponibles            
             heures_disponibles.append({
                 'terrain': terrain.id,
                 'heures_libres': heures_libres2
@@ -433,9 +437,8 @@ def heures_disponibles(request, client_id,date):
         return Response(heures_disponibles, status=status.HTTP_200_OK)
     
     except Exception as e:
-        print("Error : ------------- ",e)
+        print("Error : ------------- ", e)
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
 
@@ -448,36 +451,91 @@ class TerrainsListView(APIView):
         serializer = TerrainSerializer(terrains, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
       
+from datetime import datetime, timedelta
+from django.utils.timezone import now
+
 @api_view(['GET'])
 def terrain_heures_disponibles(request, terrain_id):
     try:
         terrain = Terrains.objects.get(pk=terrain_id)
         
-        date_today = datetime.now().date()
-        date_ouverture = datetime.combine(date_today, terrain.heure_ouverture)
-        date_fermeture = datetime.combine(date_today, terrain.heure_fermeture)
+        # Récupérer la date depuis les paramètres de requête ou définir demain par défaut
+        date_str = request.GET.get('date', (datetime.now() + timedelta(days=1)).date().strftime('%Y-%m-%d'))
+        date_today = datetime.strptime(date_str, '%Y-%m-%d').date()
+        now_time = datetime.now().time()
         
-        # Récupérer toutes les réservations pour ce terrain aujourd'hui
+        # Définir les heures d'ouverture et de fermeture
+        ouverture = terrain.heure_ouverture
+        fermeture = terrain.heure_fermeture
+        
+        # Log des heures d'ouverture et de fermeture
+        print(f"Heures d'ouverture: {ouverture}, Heures de fermeture: {fermeture}")
+
+        # Préparer les heures totales disponibles
+        if fermeture < ouverture:
+            # Si la fermeture est le jour suivant
+            heures_libres = set(range(ouverture.hour, 24)) | set(range(0, fermeture.hour + 1))
+        else:
+            heures_libres = set(range(ouverture.hour, fermeture.hour + 1))
+        
+        # Log des heures libres initiales
+        print(f"Heures libres initiales: {heures_libres}")
+
+        # Récupérer toutes les réservations et indisponibilités pour ce terrain à la date spécifiée
         reservations = Reservations.objects.filter(terrain=terrain, date_reservation=date_today)
-        
-        # Récupérer toutes les indisponibilités pour ce terrain aujourd'hui
         indisponibilites = Indisponibilites.objects.filter(terrain=terrain, date_indisponibilite=date_today)
         
-        # Liste des heures réservées et indisponibles pour ce terrain aujourd'hui
         heures_reservees = set()
         heures_indisponibles = set()
         
         for reservation in reservations:
-            heures_reservees.update(range(reservation.heure_debut.hour, reservation.heure_fin.hour))
-        
+            start_hour = reservation.heure_debut.hour
+            end_hour = reservation.heure_fin.hour
+            
+            # Gérer les réservations qui chevauchent minuit
+            if reservation.heure_fin < reservation.heure_debut:
+                end_hour += 24
+            
+            # Limiter les heures réservées à l'intérieur des heures d'ouverture et de fermeture
+            start_hour = max(start_hour, ouverture.hour)
+            end_hour = min(end_hour, fermeture.hour + 1)
+            
+            heures_reservees.update(range(start_hour, end_hour))
+            
+            # Log des heures réservées
+            print(f"Réservation: {start_hour} à {end_hour}")
+
         for indisponibilite in indisponibilites:
-            heures_indisponibles.update(range(indisponibilite.heure_debut.hour, indisponibilite.heure_fin.hour))
+            start_hour = indisponibilite.heure_debut.hour
+            end_hour = indisponibilite.heure_fin.hour
+            
+            # Gérer les indisponibilités qui chevauchent minuit
+            if indisponibilite.heure_fin < indisponibilite.heure_debut:
+                end_hour += 24
+            
+            # Limiter les heures d'indisponibilité à l'intérieur des heures d'ouverture et de fermeture
+            start_hour = max(start_hour, ouverture.hour)
+            end_hour = min(end_hour, fermeture.hour + 1)
+            
+            heures_indisponibles.update(range(start_hour, end_hour))
+            
+            # Log des heures d'indisponibilité
+            print(f"Indisponibilité: {start_hour} à {end_hour}")
         
-        # Calcul des heures disponibles pour ce terrain aujourd'hui
-        heures_libres = sorted(list(set(range(date_ouverture.time().hour, date_fermeture.time().hour)) - heures_reservees - heures_indisponibles))
-        print(heures_disponibles)
+        heures_libres -= heures_reservees
+        heures_libres -= heures_indisponibles
         
-        return Response({'terrain_id': terrain.id, 'heures_libres': heures_libres}, status=status.HTTP_200_OK)
+        # Exclure les heures passées de la date actuelle
+        if date_today == datetime.now().date():
+            heures_passées = set(hour for hour in heures_libres if hour < now_time.hour)
+            heures_libres -= heures_passées
+        
+        heures_libres = sorted(heures_libres)
+        
+        # Log des heures libres finales
+        print(f"Heures libres finales: {heures_libres}")
+        
+        return Response({'terrain_id': terrain.id, 'date': date_str, 'heures_libres': heures_libres}, status=status.HTTP_200_OK)
     
     except Terrains.DoesNotExist:
         return Response({'error': 'Terrain not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -824,6 +882,28 @@ def update_token(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Données JSON invalides'}, status=400)
 
+def get_firebase_access_token():
+    # Obtenir le chemin absolu de votre fichier JSON
+    service_account_file = os.path.join(os.path.dirname(__file__), './matchinotfications-b701b962e94f.json')
+
+    try:
+        # Charger les informations d'identification du fichier JSON
+        credentials = service_account.Credentials.from_service_account_file(
+            service_account_file,
+            scopes=['https://www.googleapis.com/auth/firebase.messaging']
+        )
+
+        # Récupérer un token d'accès
+        request = google.auth.transport.requests.Request()
+        credentials.refresh(request)
+        access_token = credentials.token
+
+        print(f"Access Token: {access_token}")
+        return access_token
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
 @api_view(['POST'])
 def create_reservation_request(request):
@@ -864,34 +944,38 @@ def send_notification_to_client(fcm_token, joueur_name, terrain_name):
     if not fcm_token:
         print("FCM token manquant, notification non envoyée.")
         return
-    
+
+    access_token = get_firebase_access_token()
     headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'BEkQ3LLArj72HxZv76wPyBqDiWa8OxYfpz6yaMX6pZB6XWlJIrr32S7HVB2DyyFao_k30ble0H1wu7JAVshZd0Y'
-,  # Remplacez YOUR_SERVER_KEY par votre clé serveur FCM
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json; UTF-8',
     }
 
-    data = {
-        "to": fcm_token,
-        "notification": {
-            "title": "Nouvelle demande de réservation",
-            "body": f"Le joueur {joueur_name} a demandé à réserver le terrain {terrain_name}.",
-            "click_action": "FLUTTER_NOTIFICATION_CLICK"
-        },
-        "data": {
-            "type": "reservation",
-            "joueur_name": joueur_name,
-            "terrain_name": terrain_name
+    # Payload de la notification
+    notification = {
+        "message": {
+            "token": fcm_token,
+            "notification": {
+                "title": "Nouvelle demande de réservation",
+                "body": f"Le joueur {joueur_name} a demandé à réserver le terrain {terrain_name}."
+            },
+            "data": {
+                "type": "reservation",
+                "joueur_name": joueur_name,
+                "terrain_name": terrain_name
+            }
         }
     }
 
-    response = requests.post('https://fcm.googleapis.com/fcm/send', headers=headers, json=data)
-    
+    project_id = 'matchinotfications'
+    url = f'https://fcm.googleapis.com/v1/projects/{project_id}/messages:send'
+
+    # Envoi de la requête
+    response = requests.post(url, headers=headers, json=notification)
     if response.status_code == 200:
         print("Notification envoyée avec succès au client.")
     else:
         print(f"Échec de l'envoi de la notification: {response.status_code} - {response.text}")
-
 class DemandeReservationClientView(APIView):
     def get(self, request, client_id):
         # Récupérer le client basé sur l'ID fourni
@@ -905,3 +989,110 @@ class DemandeReservationClientView(APIView):
         
         # Retourner les données sérialisées
         return Response(serializer.data, status=status.HTTP_200_OK)
+@csrf_exempt
+def update_fcm_token_joueur(request, joueur_id):
+    if request.method == 'PATCH':  # Utiliser PATCH au lieu de POST
+        try:
+            data = json.loads(request.body)
+            fcm_token = data.get('fcm_token')  # Récupérer le token FCM dans le corps de la requête
+
+            # Récupérer le joueur correspondant à l'ID
+            joueur = Joueurs.objects.filter(id=joueur_id).first()
+
+            if joueur:
+                # Mettre à jour le token FCM
+                joueur.fcm_tokenjoueur = fcm_token
+                joueur.save()
+
+                return JsonResponse({'message': 'FCM token updated successfully'}, status=200)
+            else:
+                return JsonResponse({'error': 'Joueur not found'}, status=404)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
+    return JsonResponse({'message': 'Only PATCH requests are allowed'}, status=405)
+
+@csrf_exempt
+@require_http_methods(["PATCH"])
+def update_reservation_status(request, reservation_id):
+    try:
+        demande = DemandeReservation.objects.get(id=reservation_id)
+        body_unicode = request.body.decode('utf-8')
+        body_data = json.loads(body_unicode)
+        new_status = body_data.get('status', None)
+
+        if new_status in ['En attente', 'Acceptée', 'Refusée']:
+            demande.status = new_status
+            demande.save()
+
+            # Envoyer une notification au joueur en fonction du nouveau statut
+            send_notification_to_joueur(demande.joueur.fcm_tokenjoueur, new_status, demande.terrain.nom_fr)
+
+            return JsonResponse({'message': 'Statut de la demande mis à jour avec succès'}, status=200)
+        else:
+            return JsonResponse({'error': 'Statut invalide'}, status=400)
+
+    except DemandeReservation.DoesNotExist:
+        return JsonResponse({'error': 'Demande de réservation non trouvée'}, status=404)
+
+def send_notification_to_joueur(fcm_token, status, terrain_name):
+    """
+    Envoie une notification au joueur via Firebase Cloud Messaging.
+    """
+    if not fcm_token:
+        print("FCM token manquant, notification non envoyée.")
+        return
+
+    access_token = get_firebase_access_token()
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json; UTF-8',
+    }
+
+    # Corps de la notification
+    body_message = f"Votre demande pour le terrain {terrain_name} a été {status.lower()}."
+    notification = {
+        "message": {
+            "token": fcm_token,
+            "notification": {
+                "title": "Mise à jour de votre réservation",
+                "body": body_message
+            },
+            "data": {
+                "type": "reservation_status_update",
+                "status": status,
+                "terrain_name": terrain_name
+            }
+        }
+    }
+
+    project_id = 'matchinotfications'
+    url = f'https://fcm.googleapis.com/v1/projects/{project_id}/messages:send'
+
+    # Envoi de la requête
+    response = requests.post(url, headers=headers, json=notification)
+    if response.status_code == 200:
+        print("Notification envoyée avec succès au joueur.")
+    else:
+        print(f"Échec de l'envoi de la notification: {response.status_code} - {response.text}")
+
+def nombre_reservations_confirmees(request, client_id):
+    try:
+        # Récupérer le client
+        client = Client.objects.get(id=client_id)
+        
+        # Compter les demandes de réservation confirmées ("Acceptée")
+        demandes_confirmees = DemandeReservation.objects.filter(terrain__client=client, status="Acceptée").count()
+        
+        # Retourner la réponse sous forme de JSON
+        return JsonResponse({
+            'client_id': client.id,
+            'client_nom': client.nom,
+            'demandes_confirmees': demandes_confirmees
+        })
+    
+    except Client.DoesNotExist:
+        return JsonResponse({'error': 'Client non trouvé'}, status=404)
+
+

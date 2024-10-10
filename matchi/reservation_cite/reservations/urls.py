@@ -39,8 +39,7 @@ urlpatterns = [
     path('faire_reservation/', views.faire_reservation, name='faire_reservation'),
     path('annuler_reservation/<int:reservation_id>/', views.annuler_reservation, name='annuler_reservation'),
     path('get_reservations/<int:joueur_id>/', views.get_reservations, name='get_reservations'),
-    path('reservations/<int:joueur_id>/', views.ReservationsJoueurView.as_view(), name='reservations-joueur'),
-    path('reservations/', views.list_reservations, name='joueur_reservations'),
+
     path('joueurs/<int:player_id>/update/', views.update_player, name='update_player'),
     path('joueurs/<int:player_id>/uploadProfileImage/', views.uploadProfileImage, name='uploadProfileImage'),
     # /joueurs/$playerId/uploadProfileImage/
@@ -65,6 +64,9 @@ urlpatterns = [
     path('update-token/', views.update_token, name='update_token'),
     path('create_reservation_request/', views.create_reservation_request, name='create_reservation_request'),
     path('client/<int:client_id>/demandes-reservation/', views.DemandeReservationClientView.as_view(), name='demandes-reservation-client'),
+    path('updateFCMToken_joueur/<int:joueur_id>/', views.update_fcm_token_joueur, name='update_fcm_token_joueur'),
+    path('reservations/<int:reservation_id>/', views.update_reservation_status, name='update_reservation_status'),
+    path('client/<int:client_id>/reservations_confirmees/', views.nombre_reservations_confirmees, name='reservations_confirmees'),
 ]
 
   
