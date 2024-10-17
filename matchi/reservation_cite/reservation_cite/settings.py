@@ -83,7 +83,7 @@ WSGI_APPLICATION = 'reservation_cite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'cite',
+        'NAME': 'matchiclient',
         'USER': 'root',
         'PASSWORD': '',
         'HOST': 'localhost',

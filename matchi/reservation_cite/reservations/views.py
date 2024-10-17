@@ -812,7 +812,8 @@ def login_joueur(request):
     
     try:
         joueur = Joueurs.objects.get(numero_telephone=numero_telephone)
-        if check_password(password, joueur.password):
+        # if check_password(password, joueur.password):
+        if password==joueur.password:
             response_data = {
                 'id': joueur.id,
                 'nom_joueur': joueur.nom_joueur,
@@ -1017,14 +1018,40 @@ def update_fcm_token_joueur(request, joueur_id):
 @require_http_methods(["PATCH"])
 def update_reservation_status(request, reservation_id):
     try:
+        # Récupérer la demande de réservation
         demande = DemandeReservation.objects.get(id=reservation_id)
         body_unicode = request.body.decode('utf-8')
         body_data = json.loads(body_unicode)
         new_status = body_data.get('status', None)
 
+        # Vérifier que le statut est valide
         if new_status in ['En attente', 'Acceptée', 'Refusée']:
             demande.status = new_status
             demande.save()
+
+            # Si le statut est "Acceptée", ajouter une réservation et réduire le crédit du client
+            if new_status == 'Acceptée':
+                joueur = demande.joueur
+                terrain = demande.terrain
+                date_reservation = demande.date_reservation
+                heure_debut = demande.heure_debut
+                heure_fin = demande.heure_fin
+
+                # Créer une nouvelle réservation
+                reservation = Reservations(
+                    joueur=joueur,
+                    terrain=terrain,
+                    date_reservation=date_reservation,
+                    heure_debut=heure_debut,
+                    heure_fin=heure_fin
+                )
+                reservation.save()
+
+                # Réduire le crédit du propriétaire du terrain (client)
+                client = terrain.client
+                reduction = client.credie * 0.10
+                client.credie -= int(reduction)
+                client.save()
 
             # Envoyer une notification au joueur en fonction du nouveau statut
             send_notification_to_joueur(demande.joueur.fcm_tokenjoueur, new_status, demande.terrain.nom_fr)
