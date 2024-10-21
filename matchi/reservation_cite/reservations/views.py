@@ -885,7 +885,7 @@ def update_token(request):
 
 def get_firebase_access_token():
     # Obtenir le chemin absolu de votre fichier JSON
-    service_account_file = os.path.join(os.path.dirname(__file__), './matchinotfications.json')
+    service_account_file = os.path.join(os.path.dirname(__file__), './matchinotfications-33aff4839dff.json')
 
     try:
         # Charger les informations d'identification du fichier JSON
@@ -1049,7 +1049,7 @@ def update_reservation_status(request, reservation_id):
 
                 # Réduire le crédit du propriétaire du terrain (client)
                 client = terrain.client
-                reduction = client.credie * 0.10
+                reduction = terrain.pricePerHour * 0.10
                 client.credie -= int(reduction)
                 client.save()
 
