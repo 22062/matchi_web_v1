@@ -1048,7 +1048,7 @@ def update_reservation_status(request, reservation_id):
 
                 # Réduire le crédit du propriétaire du terrain (client)
                 client = terrain.client
-                reduction = terrain.pricePerHour * 0.10
+                reduction = terrain.prix_par_heure * 0.10
                 client.credie -= int(reduction)
                 client.save()
 
