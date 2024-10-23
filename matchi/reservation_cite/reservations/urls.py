@@ -67,6 +67,8 @@ urlpatterns = [
     path('updateFCMToken_joueur/<int:joueur_id>/', views.update_fcm_token_joueur, name='update_fcm_token_joueur'),
     path('reservations/<int:reservation_id>/', views.update_reservation_status, name='update_reservation_status'),
     path('client/<int:client_id>/reservations_confirmees/', views.nombre_reservations_confirmees, name='reservations_confirmees'),
+    path('DemandsCount', views.DemandsCount, name='/DemandsCount'),
+    
 ]
 
   
