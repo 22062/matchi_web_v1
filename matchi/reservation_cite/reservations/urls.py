@@ -24,7 +24,7 @@ urlpatterns = [
     path('getPassword/', views.getPassword, name='getPassword'),
     path('changePassword/', views.changePassword, name='changePassword'),
     
-    path('register/', views.ClientCreateView.as_view(), name='register_client'),
+    path('registerr/', views.ClientCreateView.as_view(), name='register_client'),
     path('add_terrain/', views.TerrainsCreateView.as_view(), name='add_terrain'),
     path('clients/', views.ClientListView.as_view(), name='list_clients'),
     path('get_user_info/', views.get_user_info, name='get_user_info'),
