@@ -49,11 +49,6 @@ class Terrains(models.Model):
     gazon_artificiel = models.BooleanField(default=True)
 
 
-
-
-
-
-
 class Joueurs(models.Model):
     nom_joueur = models.CharField(max_length=100)
     prenom_joueur = models.CharField(max_length=100)
@@ -64,10 +59,11 @@ class Joueurs(models.Model):
     height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     visible = models.BooleanField(default=False)  # Corrected to use "False" instead of "false"
-    # image = models.CharField(max_length=100)
     photo_de_profile = models.ImageField(upload_to='images/', blank=True, null=True)
     wilaye = models.ForeignKey('Wilaye', on_delete=models.CASCADE, null=True)
     moughataa = models.ForeignKey('Moughataa', on_delete=models.CASCADE, default=None, null=True)
+    fcm_tokenjoueur = models.CharField(max_length=255, blank=True, null=True)
+    
 
     def save(self, *args, **kwargs):
         if self.password and not self.pk:
@@ -125,6 +121,8 @@ class DemandeReservation(models.Model):
     
     def __str__(self):
         return f"Demande de {self.joueur.nom_joueur} pour {self.terrain.nom_fr}"
+
+      
 
 
 class Inscription(models.Model):

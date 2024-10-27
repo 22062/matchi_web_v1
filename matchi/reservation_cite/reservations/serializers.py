@@ -1,7 +1,7 @@
 from rest_framework import serializers 
 
 
-from .models import Client, Joueurs, Terrains, Reservations,Moughataa,Indisponibilites,Wilaye,Academie
+from .models import Client, DemandeReservation, Joueurs, Terrains, Reservations,Moughataa,Indisponibilites,Wilaye,Academie
 
 from django.contrib.auth.hashers import make_password
 
@@ -69,3 +69,9 @@ class JoueurSerializer(serializers.ModelSerializer):
         validated_data['password'] = make_password(validated_data['password'])
         joueur = Joueurs.objects.create(**validated_data)
         return joueur
+
+class DemandeReservationSerializer(serializers.ModelSerializer):
+    joueur = JoueurSerializer()
+    class Meta:
+      model = DemandeReservation
+      fields = ['id', 'joueur','date_demande', 'heure_debut', 'heure_fin', 'status']
