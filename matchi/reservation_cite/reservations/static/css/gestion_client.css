@@ -1,6 +1,6 @@
 .ListeClient{
     width: 100%;
-    height: 60vh;
+    height: 70vh;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -19,7 +19,7 @@
     background: #fff; /* couleur de la barre de défilement */
 }
 .information_sur_client{
-    width: 22%;
+    width: 18%;
     height:32vh;
     background-color:#29282D;
     margin-left: 1%;
