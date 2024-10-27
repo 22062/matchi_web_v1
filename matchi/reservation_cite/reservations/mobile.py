@@ -93,106 +93,8 @@ def get_user_info(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Client.DoesNotExist:
         return Response({'error': 'Client non trouvé'}, status=status.HTTP_404_NOT_FOUND)
-# def modifier_cite(request, cite_id):
-#     cite_instance = get_object_or_404(cite, id=cite_id)
-
-#     if request.method == 'POST':
-#         cite_instance.nom = request.POST.get('nom')
-#         cite_instance.longitude = request.POST.get('longitude')
-#         cite_instance.latitude = request.POST.get('latitude')
-#         cite_instance.client_id = request.POST.get('client')
-#         cite_instance.wilaye_id = request.POST.get('Wilaye')
-#         cite_instance.moughataa_id = request.POST.get('Moughataa')
-#         cite_instance.ballon_disponible = request.POST.get('ballon_disponible') == 'True'
-#         cite_instance.maillot_disponible = request.POST.get('maillot_disponible') == 'True'
-#         cite_instance.eclairage_disponible = request.POST.get('eclairage_disponible') == 'True'
-#         cite_instance.sonorisation_disponible = request.POST.get('sonorisation_disponible') == 'True'
-#         cite_instance.lieu = request.POST.get('lieu')
-#         cite_instance.nombre_joueur = request.POST.get('nombre_joueur')
-#         cite_instance.prix_par_heure = request.POST.get('prix_par_heure')
-#         if 'photo1' in request.FILES:
-#              cite_instance.photo1 = request.FILES['photo1']
-
-#         if 'photo2' in request.FILES:
-#             cite_instance.photo2 = request.FILES['photo2']
-
-#         if 'photo3' in request.FILES:
-#             cite_instance.photo3 = request.FILES['photo3']
-
-#         cite_instance.save()
-#         return redirect('gestion_cite')
-#     return render(request, 'modifier_cite.html', {'cite': cite_instance})
 
 
-
-# def supprimer_cite(request, cite_id):
-#     cite_instance = get_object_or_404(cite, id=cite_id)
-#     if request.method == 'POST':
-#         cite_instance.delete()
-#         return JsonResponse({'success': True})
-#     return JsonResponse({'success': False})
-
-# def page_acceuil(request):
-#     return render(request, 'pages/page_acceuil.html')
-
-# def ajouter_cite(request):
-#     return render(request, 'pages/ajouter_cite.html')
-
-# def gestion_cite(request):
-#     clients = Client.objects.all()
-#     wilayes = Wilaye.objects.all()
-#     moughataa=Moughataa.objects.all()
-#     cites=cite.objects.all()
-#     context = {
-#         'clients': clients,
-#         'wilayes': wilayes,
-#         'moughataa':moughataa,
-#         'cites':cites,
-#     }
-#     if request.method == 'POST':
-#         # Récupérer les données du formulaire
-#         nom = request.POST.get('nom')
-#         longitude = request.POST.get('longitude')
-#         latitude = request.POST.get('latitude')
-#         nombre_joueur = request.POST.get('nombre_joueur')
-#         lieu = request.POST.get('lieu')
-#         prix_par_heure = request.POST.get('prix_par_heure')
-#         photo1 = request.FILES.get('photo1')
-#         photo2 = request.FILES.get('photo2')
-#         photo3 = request.FILES.get('photo3')
-#         client_id = request.POST.get('client')
-#         wilaye_id = request.POST.get('Wilaye')
-#         moughataa_id = request.POST.get('Moughataa') 
-#         ballon_disponible = request.POST.get('ballon_disponible')
-#         maillot_disponible = request.POST.get('maillot_disponible')
-#         eclairage_disponible = request.POST.get('eclairage_disponible')
-#         sonorisation_disponible = request.POST.get('sonorisation_disponible')# Assurez-vous d'ajouter ce champ dans le formulaire si nécessaire
-#         nouvelle_cite = cite.objects.create(
-#             nom=nom,
-#             longitude=longitude,
-#             latitude=latitude,
-#             nombre_joueur=nombre_joueur,
-#             lieu=lieu,
-#             prix_par_heure=prix_par_heure,
-#             moughataa_id=moughataa_id,
-#             wilaye_id=wilaye_id,
-#             client_id=client_id,
-#             photo1=photo1,
-#             photo2=photo2,
-#             photo3=photo3,
-#             ballon_disponible=ballon_disponible,
-#             maillot_disponible=maillot_disponible,
-#             eclairage_disponible=eclairage_disponible,
-#             sonorisation_disponible=sonorisation_disponible,
-#         )
-#         return redirect('/gestion_cite')
-#     return render(request, 'pages/gestion_cite.html', context)
-
-# def headerGestion_cite(request):
-#     return render(request, 'pages/headerGestion_cite.html')
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
 from .models import Client, Terrains
 from .serializers import ClientSerializer, JoueurSerializer, TerrainSerializer,ReservationSerializer
 from django.contrib.auth.hashers import check_password
@@ -1162,5 +1064,80 @@ def nombre_reservations_confirmees(request, client_id):
     
     except Client.DoesNotExist:
         return JsonResponse({'error': 'Client non trouvé'}, status=404)
+
+@api_view(['GET'])
+def heures_disponibles_for_player(request, terrain_id, date):
+    try:
+        # Convertir la date en objet date
+        date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+        # Récupérer le terrain à partir de l'ID
+        terrain = get_object_or_404(Terrains, pk=terrain_id)
+
+        heures_disponibles = []
+        current_time = datetime.now().time()
+        heure_ouverture = terrain.heure_ouverture
+        heure_fermeture = terrain.heure_fermeture
+
+        # Debugging current time, opening, and closing time
+        print(f"Terrain: {terrain.nom_fr}")
+        print(f"Heure d'ouverture: {heure_ouverture}, Heure de fermeture: {heure_fermeture}")
+        print(f"Heure actuelle: {current_time}")
+
+        # Check today's date and whether hours need to be restricted based on the current time
+        if date_obj == datetime.now().date():
+            start_hour = max(heure_ouverture.hour, current_time.hour)
+        else:
+            start_hour = heure_ouverture.hour
+
+        # Handle case where closing time is after midnight
+        if heure_fermeture.hour < heure_ouverture.hour:
+            print("Closing time is after midnight")
+            hours_before_midnight = set(range(start_hour, 24))  # From opening to midnight
+            hours_after_midnight = set(range(0, heure_fermeture.hour))  # From midnight to closing
+            all_hours = hours_before_midnight.union(hours_after_midnight)
+        else:
+            all_hours = set(range(start_hour, heure_fermeture.hour))
+
+        # Debugging all_hours to check the number of hours
+        print(f"Generated all_hours: {all_hours}")
+        print(f"Number of hours in all_hours: {len(all_hours)}")
+
+        heures_reservees = set()
+        heures_indisponibles = set()
+
+        # Récupérer les réservations et les indisponibilités pour le terrain et la date spécifiée
+        reservations = Reservations.objects.filter(terrain=terrain, date_reservation=date_obj)
+        indisponibilites = Indisponibilites.objects.filter(terrain=terrain, date_indisponibilite=date_obj)
+
+        # Enregistrer les heures réservées
+        for reservation in reservations:
+            heures_reservees.update(range(reservation.heure_debut.hour, reservation.heure_fin.hour))
+
+        # Enregistrer les heures indisponibles
+        for indisponibilite in indisponibilites:
+            heures_indisponibles.update(range(indisponibilite.heure_debut.hour, indisponibilite.heure_fin.hour))
+
+        heures_libres2 = []
+
+        # Vérifier chaque heure pour déterminer son état
+        for hour in all_hours:
+            if hour in heures_reservees:
+                heures_libres2.append({'heure': hour, 'etat': 'reservé'})
+            elif hour in heures_indisponibles:
+                heures_libres2.append({'heure': hour, 'etat': 'indisponible'})
+            else:
+                heures_libres2.append({'heure': hour, 'etat': 'libre'})
+
+        # Ajouter les résultats à la liste des heures disponibles
+        heures_disponibles.append({
+            'terrain': terrain.id,
+            'heures_libres': heures_libres2
+        })
+
+        return Response(heures_disponibles, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("Error : ------------- ", e)
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

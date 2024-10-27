@@ -122,9 +122,6 @@ class DemandeReservation(models.Model):
     def __str__(self):
         return f"Demande de {self.joueur.nom_joueur} pour {self.terrain.nom_fr}"
 
-      
-
-
 class Inscription(models.Model):
     login = models.CharField(max_length=100)
     mot_de_passe = models.CharField(max_length=128)

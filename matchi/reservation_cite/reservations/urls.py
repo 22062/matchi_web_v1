@@ -6,7 +6,7 @@ from django.conf.urls.static import static
 
 
 urlpatterns = [
-<<<<<<< HEAD
+
     path('index', views.index , name='index'),
     path('ajouter_terrain', views.ajouter_terrain, name='ajouter_terrain'),
     path('gestion_client', views.gestion_client, name='gestion_client'),
@@ -25,7 +25,7 @@ urlpatterns = [
     path('modifier_academie/<int:academie_id>/', views.modifier_academie, name='modifier_academie'),
     path('supprimer_academie/<int:academie_id>/', views.supprimer_academie, name='supprimer_academie'),
     path('', views.login, name='login'),
-=======
+
    path('index', mobile.index , name='index'),
 #    path('ajouter_cite', mobile.ajouter_cite , name='ajouter_cite'),
    path('gestion_client', mobile.gestion_client , name='gestion_client'),
@@ -47,7 +47,7 @@ urlpatterns = [
     path('get_user_info/', mobile.get_user_info, name='get_user_info'),
     path('get_terrain_info/<int:client_id>/', mobile.get_terrain_info, name='get_terrain_info'),
     path('get_all_terrains/', mobile.get_all_terrains, name='get_all_terrains'),
-    path('', include(router.urls)),
+    
     path('heures-disponibles/<int:client_id>/<str:date>/', mobile.heures_disponibles, name='heures_disponibles'),
     path('terrains/', mobile.TerrainsListView.as_view(), name='terrains-list'),
     path('terrains/<int:terrain_id>/available-schedules/', mobile.terrain_heures_disponibles, name='available_schedules'),
@@ -67,13 +67,11 @@ urlpatterns = [
     path('moughataas/<int:code_wilaye>/', mobile.get_moughataas, name='get_moughataas'),
     path('ActiveDesactive/<int:joueur_id>/', mobile.ActiveDesactive, name='ActiveDesactive'),
     path('academies/', mobile.AcademieListCreateAPIView.as_view(), name='academie-list-create'),
->>>>>>> aa7efcb926a8977c49ad835be935589994e8bce3
 
 
 
 
-<<<<<<< HEAD
-=======
+
 
 
 
@@ -91,8 +89,7 @@ urlpatterns = [
     
 ]
 
->>>>>>> aa7efcb926a8977c49ad835be935589994e8bce3
-  
+
 
 
 

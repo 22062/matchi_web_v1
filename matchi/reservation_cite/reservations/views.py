@@ -1,7 +1,7 @@
-<<<<<<< HEAD
+
 from django.views import View
 from rest_framework.authtoken.models import Token
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 from django.db.models import Count
 import re
 from django.contrib.auth.hashers import check_password
@@ -503,6 +503,4 @@ def supprimer_academie(request, academie_id):
 
 
 
-=======
- 
->>>>>>> aa7efcb926a8977c49ad835be935589994e8bce3
+
