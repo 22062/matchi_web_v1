@@ -1,6 +1,18 @@
 {% extends "index.html" %}
 {% load static %}
 {% block bodyGestion_client %}
+<div id="messages" style="color: red;font-weight:bold;margin-left:2%;margin-top:10px">
+    <script>
+            {% if messages %}
+                let messagesDiv = document.getElementById('messages');
+                let messages = [];
+                {% for message in messages %}
+                    messages.push("{{ message|escapejs }}");
+                {% endfor %}
+                messagesDiv.innerHTML = messages.join("<br>");
+            {% endif %}
+    </script>
+</div>
 <link rel="stylesheet" href="{% static 'css/gestion_client.css' %}">
 {% include "pages/ajouter_client.html" %}
 <div class="h4 ml-3"><h2>Listes de clients</h2></div>
@@ -10,11 +22,11 @@
         <div class="attribut_client">
             <div class="F_client" style="overflow: hidden;text-overflow: ellipsis; white-space: nowrap;">
                 <p><b>Nom:</b> {{ client.nom }}</p>
-                <p><b>Prenom:</b> {{ client.prenom }}</p>
+                <p><b>credie:</b> {{ client.credie }}</p>
                 <p><b>Tél:</b> {{ client.numero_telephone }}</p>
             </div>
             <div class="crudclient">
-                <button type="button" class="btn btn-primary btn-sm btn-modifier" data-client-id="{{ client.id }}" data-client-nom="{{ client.nom }}" data-client-prenom="{{ client.prenom }}" data-client-telephone="{{ client.numero_telephone }}" data-toggle="modal" data-target="#editClientModal">Modifier</button>
+                <button type="button" class="btn btn-primary btn-sm btn-modifier" data-client-id="{{ client.id }}" data-client-nom="{{ client.nom }}" data-client-prenom="{{ client.prenom }}" data-client-credie="{{ client.credie }}" data-client-telephone="{{ client.numero_telephone }}" data-toggle="modal" data-target="#editClientModal">Modifier</button>
                 <button type="button" class="btn btn-danger btn-sm btn-supprimer" data-client-id="{{ client.id }}">Supprimer</button>
             </div>
         </div>
@@ -102,10 +114,14 @@
             var clientId = $(this).data('client-id');
             var clientNom = $(this).data('client-nom');
             var clientPrenom = $(this).data('client-prenom');
+            var clientCredie = $(this).data('client-credie');
+
             var clientTelephone = $(this).data('client-telephone');
             $('#edit_client_id').val(clientId);
             $('#edit_nom').val(clientNom);
             $('#edit_prenom').val(clientPrenom);
+            $('#edit_credie').val(clientCredie);
+
             $('#edit_numero_telephone').val(clientTelephone);
             $('#edit_modepass_chiffre').val('');
         });
@@ -114,6 +130,7 @@
             var clientId = $('#edit_client_id').val();
             var nom = $('#edit_nom').val();
             var prenom = $('#edit_prenom').val();
+            var credie = $('#edit_credie').val();
             var numeroTelephone = $('#edit_numero_telephone').val();
             var modepassChiffre = $('#edit_modepass_chiffre').val();
 
@@ -124,6 +141,7 @@
                     client_id: clientId,
                     nom: nom,
                     prenom: prenom,
+                    credie:credie,
                     numero_telephone: numeroTelephone,
                     modepass_chiffre: modepassChiffre,
                     csrfmiddlewaretoken: '{{ csrf_token }}'
@@ -160,6 +178,7 @@
         });
     });
 </script>
+
 {% endblock bodyGestion_client %}
 
 

@@ -1,13 +1,8 @@
 .header_Gestion_client{
-    width: 25%;
+    width: 300px;
     padding: 10px;
     height: 10vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    top: 0;
-    right: 5%;
+    margin-top: -1%;
 }
 
 
@@ -15,11 +10,11 @@ input[type="search"]{
     width: 98%;
     height: 45px;
     outline: none;
-    border: 1px solid  #49AD90;
+    border: 1px solid  black;
     border-radius: 10px;
     padding-left: 20px;
+    
  }
- ::placeholder{
-    font-size: 20px;
-    color:  #49AD90;
- }
+::placeholder{
+    color: black;
+}

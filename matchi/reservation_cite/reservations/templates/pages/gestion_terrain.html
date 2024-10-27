@@ -1,0 +1,273 @@
+{% extends "index.html" %}
+{% load static %}
+{% block bodygestion_terrain %}
+
+<link rel="stylesheet" href="{% static 'css/gestion_terrain.css' %}">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<div id="messages" style="color: red;font-weight:bold;margin-left:2%;">
+    {% include "pages/modifier_terrain.html" %}
+    {% include "pages/ajouter_terrain.html" %}
+    <script>
+            {% if messages %}
+                let messagesDiv = document.getElementById('messages');
+                let messages = [];
+                {% for message in messages %}
+                    messages.push("{{ message|escapejs }}");
+                {% endfor %}
+                messagesDiv.innerHTML = messages.join("<br>");
+            {% endif %}
+    </script>
+</div>
+
+<div class="AFFicheListeCite ml-2" >
+    <h2>Liste des Cites</h2>
+</div>
+<div class="ListeCite">
+    {% for terrain in terrains %}
+    <div class="site" id="terrain{{ terrain.id }}" style="background-image: url('{{ terrain.photo1.url }}');"
+    data-nom_fr="{{ terrain.nom_fr }}"
+    data-nom_ar="{{ terrain.nom_ar }}"
+    data-longitude="{{ terrain.longitude }}"
+    data-latitude="{{ terrain.latitude }}"
+    data-nombre_joueur="{{ terrain.nombre_joueur }}"
+    data-lieu_fr="{{ terrain.lieu_fr }}"
+    data-lieu_ar="{{ terrain.lieu_ar }}"
+    data-prix_par_heure="{{ terrain.prix_par_heure }}"
+    data-client_id="{{ terrain.client.id }}"
+    data-wilaye_id="{{ terrain.wilaye.code_wilaye }}"
+    data-moughataa_id="{{ terrain.moughataa.id }}"
+    data-ballon_disponible="{{ terrain.ballon_disponible }}"
+    data-maillot_disponible="{{ terrain.maillot_disponible }}"
+    data-eclairage_disponible="{{ terrain.eclairage_disponible }}"
+    data-heure_fermeture="{{ terrain.heure_fermeture }}"
+    data-heure_ouverture="{{ terrain.heure_ouverture }}"
+    data-numero_telephone="{{ terrain.client.numero_telephone }}"
+    data-eau="{{ terrain.eau }}"
+    data-siffler="{{ terrain.siffler }}"
+    data-parking="{{ terrain.parking }}"
+    data-gazon_artificiel="{{ terrain.gazon_artificiel }}">
+    <h5>{{ terrain.wilaye.nom_wilaye_fr }}</h5>
+    <h4>{{ terrain.nom_fr }}</h4>
+</div>
+
+        <div class="formation_sur_cite" style="display:none">
+            <div class="nom_cite">
+                <div  style="overflow: hidden;text-overflow: ellipsis; white-space: nowrap;"><h1>{{ terrain.nom_fr }}</h1></div>
+                <div class="les_options">
+                    <div class="modifier">
+                        <button onclick="afficherModalModification('{{ terrain.id }}')">Modifier</button>
+                    </div>
+                    <div class="suprimer">
+                        <button onclick="SuprimerCite('{{ terrain.id }}')">Supprimer</button>
+                    </div>
+                    <div class="ferme">
+                        <button onclick="closeFormationSurCite(this)">Fermer</button>
+                    </div>
+                </div>
+            </div>
+            <div class="attribut_cite">
+                <div class="attribut_cite1" >
+                    <p><b>Client tél :</b> {{ terrain.client.numero_telephone }}</p>
+                    <p><b>Wilaye :</b> {{ terrain.wilaye.nom_wilaye_fr }} </p>
+                    <p><b>Moughataa :</b> {{ terrain.moughataa.nom_ar }} </p>
+                    <p><b>Prix par heure :</b> {{ terrain.prix_par_heure }}</p>
+                    <p><b>Lieu(Arabe) :</b> {{ terrain.lieu_ar }}</p>
+                    <p><b>Lieu(Francais) :</b> {{ terrain.lieu_fr }}</p>
+                    <p><b>Nombre de joueurs :</b> {{ terrain.nombre_joueur }}</p>
+                </div>
+                <div class="attribut_cite2" style="overflow: scroll;text-overflow: ellipsis; white-space: nowrap;">
+                    <p ><b>Localisation  :</b> {{ terrain.latitude }} x {{ terrain.longitude }}</p>
+                    <p><b>Ballon disponible :</b> {{ terrain.ballon_disponible }}</p>
+                    <p><b>Maillot disponible :</b> {{ terrain.maillot_disponible }}</p>
+                    <p><b>Éclairage disponible :</b> {{ terrain.eclairage_disponible }}</p>
+                    <p><b>ouvert : </b> {{ terrain.heure_ouverture }}  à  {{ terrain.heure_fermeture }}</p>
+                    <p><b>Eau disponible :</b> {{ terrain.eau }}</p>
+                    <p><b>Siffler disponible :</b> {{ terrain.siffler }}</p>
+                    <p><b>Parking  :</b> {{ terrain.parking }}</p>
+                    <p><b>Gazon Artificiel  :</b> {{ terrain.gazon_artificiel }}</p>
+
+
+
+
+                </div>
+            </div>
+            <div class="photo_cite">
+                <div class="photo" style="background-image: url('{{ terrain.photo1.url }}');"></div>
+                <div class="photo" style="background-image: url('{{ terrain.photo2.url }}');"></div>
+                <div class="photo" style="background-image: url('{{ terrain.photo3.url }}');"></div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--#############################################les script ###########################################################-->
+
+
+
+<script>
+    $(document).ready(function() {
+        $('.ListeCite').on('click', '.site', function() {
+            $(this).next('.formation_sur_cite').show();
+        });
+
+        window.closeFormationSurCite = function(button) {
+            $(button).closest('.formation_sur_cite').hide();
+        };
+
+        window.afficherModalModification = function(terrain_id) {
+            var terrain = $("#terrain" + terrain_id).data();
+            $('#terrain_id').val(terrain_id);
+            $('#nom_fr_modifier').val(terrain.nom_fr);
+            $('#nom_ar_modifier').val(terrain.nom_ar);
+
+            $('#longitude_modifier').val(terrain.longitude);
+            $('#latitude_modifier').val(terrain.latitude);
+            $('#nombre_joueur_modifier').val(terrain.nombre_joueur);
+            $('#lieu_fr_modifier').val(terrain.lieu_fr);
+            $('#lieu_ar_modifier').val(terrain.lieu_ar);
+
+            $('#prix_par_heure_modifier').val(terrain.prix_par_heure);
+            $('#client_modifier').val(terrain.numero_telephone);
+            $('#Wilaye_modifier').val(terrain.wilaye_id);
+            $('#Moughataa_modifier').val(terrain.moughataa_id);
+            $('#heure_ouverture_modifier').val(terrain.heure_ouverture);
+            $('#heure_fermeture_modifier').val(terrain.heure_fermeture);
+            $('#ballon_disponible_true_modifier').prop('checked', terrain.ballon_disponible === 'True');
+            $('#ballon_disponible_false_modifier').prop('checked', terrain.ballon_disponible === 'False');
+            $('#gazon_artificiel_true_modifier').prop('checked', terrain.gazon_artificiel === 'True');
+            $('#gazon_artificiel_false_modifier').prop('checked', terrain.gazon_artificiel === 'False');
+            $('#eau_true_modifier').prop('checked', terrain.parking === 'True');
+            $('#eau_false_modifier').prop('checked', terrain.parking === 'False');
+            $('#parking_true_modifier').prop('checked', terrain.parking === 'True');
+            $('#parking_false_modifier').prop('checked', terrain.parking === 'False');
+            $('#siffler_true_modifier').prop('checked', terrain.siffler === 'True');
+            $('#siffler_false_modifier').prop('checked', terrain.siffler === 'False');
+
+            $('#maillot_disponible_true_modifier').prop('checked', terrain.maillot_disponible === 'True');
+            $('#maillot_disponible_false_modifier').prop('checked', terrain.maillot_disponible === 'False');
+            $('#eclairage_disponible_true_modifier').prop('checked', terrain.eclairage_disponible === 'True');
+            $('#eclairage_disponible_false_modifier').prop('checked', terrain.eclairage_disponible === 'False');
+            $('#sonorisation_disponible_true_modifier').prop('checked', terrain.sonorisation_disponible === 'True');
+            $('#sonorisation_disponible_false_modifier').prop('checked', terrain.sonorisation_disponible === 'False');
+            $('#modifierCiteModal').modal('show');
+            var formAction = "{% url 'modifier_terrain' 0 %}".replace('/0/', '/' + terrain_id + '/');
+            $('#modifierCiteForm').attr('action', formAction);
+        };
+        window.SuprimerCite = function(terrain_id) {
+            if (confirm("Êtes-vous sûr de vouloir supprimer ce cite ?")) {
+                $.ajax({
+                    url: "{% url 'supprimer_terrain' 0 %}".replace('/0/', '/' + terrain_id + '/'),
+                    type: 'POST',
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#terrain' + terrain_id).remove();
+                            location.reload();
+                        } else {
+                            alert("Échec de la suppression du cite.");
+                        }
+                    }
+                });
+            }
+        };
+        $('#searchCite').on('input', function() {
+            var searchQuery = $(this).val().toLowerCase();
+            $('.ListeCite .site').each(function() {
+                var numeroTelephone = String($(this).data('numero_telephone')).toLowerCase();
+                if (numeroTelephone.includes(searchQuery)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock bodygestion_terrain %}
+
+<!--############################################# header ###########################################################-->
+
+{% block header_gestion_terrain %}
+<link rel="stylesheet" href="{% static 'css/header_Gestion_terrain.css' %}">
+<div class="header_gestion_terrain">
+    <input  id="searchCite"   type="search" placeholder="Rechercher du cite" style = "font-size: 20px;color:#49AD90; }">
+</div>
+{% endblock header_gestion_terrain %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

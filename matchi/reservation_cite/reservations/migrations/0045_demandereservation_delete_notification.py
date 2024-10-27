@@ -24,7 +24,4 @@ class Migration(migrations.Migration):
                 ('terrain', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reservations.terrains')),
             ],
         ),
-        migrations.DeleteModel(
-            name='Notification',
-        ),
     ]

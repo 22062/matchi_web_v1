@@ -1,11 +1,11 @@
 <div class="container mt-2">
-    <button type="button" class="btn" style="background-color:#49AD90;color:white;font-weight:bold;" data-toggle="modal" data-target="#createClientModal">
+    <button type="button" class="btn" style="background-color:#49AD90;color:white;font-weight:bold;margin-left:-10%;" data-toggle="modal" data-target="#createClientModal">
         Créer un compte client
     </button>
     <div class="modal fade" id="createClientModal"  tabindex="-1" role="dialog" aria-labelledby="createClientModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
-            <div class="modal-content" style="background-color:#29282D;color:white;">
-                <div class="modal-header" style="border-bottom:2px solid #49AD90;color:#fff;">
+            <div class="modal-content" >
+                <div class="modal-header" style="border-bottom:2px solid #49AD90;">
                     <h5 class="modal-title" id="createClientModalLabel">Créer un compte client</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -25,6 +25,10 @@
                         <div class="form-group">
                             <label for="numero_telephone">Numéro de téléphone</label>
                             <input type="text" class="form-control" id="numero_telephone" name="numero_telephone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="credie">credie</label>
+                            <input type="number" class="form-control" id="credie" name="credie" required>
                         </div>
                         <div class="form-group">
                             <label for="modepass_chiffre">Mot de passe</label>

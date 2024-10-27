@@ -1,0 +1,63 @@
+
+{% extends "index.html" %}
+{% load static %}
+{% block listes_jouers %}
+
+<html>
+<head>
+    <title>Liste des Joueurs</title>
+    <link rel="stylesheet" href="{% static 'css/listes_joueurs.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+</head>
+<body><br>
+    <h1>Liste des Joueurs</h1>
+    <div class="jouers">
+    {% for joueur in joueurs %}
+    <div class="jouer" data-numero_telephone="{{ joueur.numero_telephone }}">
+       <div class="profil">
+        {% if joueur.photo_de_profile %}
+      <div class="photoProfile" style="background-image: url('{{ joueur.photo_de_profile.url }}');"></div>
+   {% else %}
+   <div class="photoProfile" style="background-image: url('{% static 'images/1.png' %}');"></div>
+   {% endif %}
+       </div>
+       <div class="description" style="overflow: hidden;text-overflow: ellipsis; white-space: nowrap;">
+            <p><b>Nom :</b> {{ joueur.nom_joueur }} {{ joueur.prenom_joueur }}</p>
+            <p><b>Tél :</b> {{ joueur.numero_telephone }}</p>
+            <form method="POST" action="{% url 'supprimer_joueur' joueur.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce joueur ?');"> <i class="fas fa-trash-alt"></i></button>
+            </form>
+       </div>
+    </div>
+    {% endfor %}
+    </div>
+</body>
+</html>
+
+<script>
+    $(document).ready(function() {
+        $('#searchJouer').on('keyup', function() {
+            var searchQuery = $(this).val().trim().toLowerCase(); // Trim et toLowerCase
+            $('.jouer').each(function() {
+                var numeroTelephone = String($(this).data('numero_telephone')).toLowerCase();
+                var joueurName = $(this).find('.description').text().toLowerCase(); // Ajout de la recherche par nom du joueur
+
+                // Vérifier si le numéro de téléphone ou le nom du joueur contient la requête de recherche
+                if (numeroTelephone.includes(searchQuery) || joueurName.includes(searchQuery)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+    });
+</script>
+{% endblock listes_jouers %}
+{% block header_joueur %}
+<link rel="stylesheet" href="{% static 'css/header_joueur.css' %}">
+<div class="header_joueur">
+    <input id="searchJouer" type="search" placeholder="Rechercher du jouer" style="font-size: 20px; color:#49AD90;">
+</div>
+{% endblock header_joueur %}
