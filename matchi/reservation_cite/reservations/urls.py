@@ -49,6 +49,7 @@ urlpatterns = [
     path('get_all_terrains/', mobile.get_all_terrains, name='get_all_terrains'),
     
     path('heures-disponibles/<int:client_id>/<str:date>/', mobile.heures_disponibles, name='heures_disponibles'),
+    path('heures-disponibles-jouer/<int:id_terrin>/<str:date>/', mobile.heures_disponibles_jouers, name='heures_disponibles_jouers'),
     path('terrains/', mobile.TerrainsListView.as_view(), name='terrains-list'),
     path('terrains/<int:terrain_id>/available-schedules/', mobile.terrain_heures_disponibles, name='available_schedules'),
     path('joueurs/', mobile.JoueursListView.as_view(), name='joueurs-list'),
@@ -84,6 +85,8 @@ urlpatterns = [
     path('client/<int:client_id>/demandes-reservation/', mobile.DemandeReservationClientView.as_view(), name='demandes-reservation-client'),
     path('updateFCMToken_joueur/<int:joueur_id>/', mobile.update_fcm_token_joueur, name='update_fcm_token_joueur'),
     path('reservations/<int:reservation_id>/', mobile.update_reservation_status, name='update_reservation_status'),
+    path('get_terrinbyclient/<int:client_id>/', mobile.get_terrinbyclient, name='get_terrinbyclient'),
+    
     path('client/<int:client_id>/reservations_confirmees/', mobile.nombre_reservations_confirmees, name='reservations_confirmees'),
     path('DemandsCount', mobile.DemandsCount, name='/DemandsCount'),
     

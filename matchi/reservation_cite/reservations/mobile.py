@@ -278,6 +278,24 @@ from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime
 
+
+@api_view(['GET'])
+def get_terrinbyclient(request, client_id):
+    try:
+        client = get_object_or_404(Client, pk=client_id)
+        terrain = Terrains.objects.filter(client=client).first()  # Filter by client, get the first match
+
+        if terrain is not None:
+            return Response({"id": terrain.id}, status=200)
+        else:
+            return Response({"error": "No terrain found for this client."}, status=404)
+
+    except Exception as e:
+        print("Exception:", e)
+        return Response({"error": str(e)}, status=400)
+
+
+
 @api_view(['GET'])
 def heures_disponibles(request, client_id, date):
     try:
@@ -354,6 +372,98 @@ def heures_disponibles(request, client_id, date):
     except Exception as e:
         print("Error : ------------- ", e)
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+@api_view(['GET'])
+def heures_disponibles_jouers(request, id_terrin, date):
+    try:
+        date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+        terrains = Terrains.objects.get(pk=id_terrin)
+
+        heures_disponibles = []
+
+        for terrain in terrains:
+            current_time = datetime.now().time()
+            heure_ouverture = terrain.heure_ouverture
+            heure_fermeture = terrain.heure_fermeture
+            
+            # Debugging current time, opening, and closing time
+            print(f"Terrain: {terrain.nom_fr}")
+            print(f"Heure d'ouverture: {heure_ouverture}, Heure de fermeture: {heure_fermeture}")
+            print(f"Heure actuelle: {current_time}")
+
+            # Check today's date and whether hours need to be restricted based on the current time
+            if date_obj == datetime.now().date():
+                start_hour = max(heure_ouverture.hour, current_time.hour)
+            else:
+                start_hour = heure_ouverture.hour
+
+            # Handle case where closing time is after midnight
+            if heure_fermeture.hour < heure_ouverture.hour:
+                print("Closing time is after midnight")
+                hours_before_midnight = set(range(start_hour, 24))  # From opening to midnight
+                hours_after_midnight = set(range(0, heure_fermeture.hour))  # From midnight to closing
+                all_hours = hours_before_midnight.union(hours_after_midnight)
+            else:
+                all_hours = set(range(start_hour, heure_fermeture.hour))
+
+            # Debugging all_hours to check the number of hours
+            print(f"Generated all_hours: {all_hours}")
+            print(f"Number of hours in all_hours: {len(all_hours)}")
+
+            # Add more detailed debugging if all_hours is still empty
+            if not all_hours:
+                print("No available hours found. Debugging:")
+                print(f"Opening hour: {heure_ouverture.hour}, Closing hour: {heure_fermeture.hour}")
+                print(f"Start hour: {start_hour}, Current time: {current_time}")
+
+            heures_reservees = set()
+            heures_indisponibles = set()
+
+            reservations = Reservations.objects.filter(terrain=terrain, date_reservation=date_obj)
+            indisponibilites = Indisponibilites.objects.filter(terrain=terrain, date_indisponibilite=date_obj)
+
+            for reservation in reservations:
+                heures_reservees.update(range(reservation.heure_debut.hour, reservation.heure_fin.hour))
+
+            for indisponibilite in indisponibilites:
+                heures_indisponibles.update(range(indisponibilite.heure_debut.hour, indisponibilite.heure_fin.hour))
+
+            heures_libres2 = []
+
+            for hour in all_hours:
+                if hour in heures_reservees:
+                    print("")
+                elif hour in heures_indisponibles:
+                    print("")
+                else:
+                    heures_libres2.append({'heure': hour, 'etat': 'libre'})
+
+            heures_disponibles.append({
+                'terrain': terrain.id,
+                'heures_libres': heures_libres2
+            })
+
+        return Response(heures_disponibles, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("Error : ------------- ", e)
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+
+
+
+
+
+
+
 
 class TerrainsListView(APIView):
     def get(self, request):
