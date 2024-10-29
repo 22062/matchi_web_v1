@@ -49,7 +49,7 @@ urlpatterns = [
     path('get_all_terrains/', mobile.get_all_terrains, name='get_all_terrains'),
     
     path('heures-disponibles/<int:client_id>/<str:date>/', mobile.heures_disponibles, name='heures_disponibles'),
-    path('heures-disponibles-jouer/<int:id_terrin>/<str:date>/', mobile.heures_disponibles_jouers, name='heures_disponibles_jouers'),
+    path('heures-disponibles-jouer/<int:terrain_id>/<str:date>/', mobile.heures_disponibles_jouers, name='heures_disponibles_jouers'),
     path('terrains/', mobile.TerrainsListView.as_view(), name='terrains-list'),
     path('terrains/<int:terrain_id>/available-schedules/', mobile.terrain_heures_disponibles, name='available_schedules'),
     path('joueurs/', mobile.JoueursListView.as_view(), name='joueurs-list'),
@@ -89,6 +89,7 @@ urlpatterns = [
     
     path('client/<int:client_id>/reservations_confirmees/', mobile.nombre_reservations_confirmees, name='reservations_confirmees'),
     path('DemandsCount', mobile.DemandsCount, name='/DemandsCount'),
+    path('reservations/joueur/<int:joueur_id>/', mobile.get_reservations_par_joueur, name='get_reservations_par_joueur'),
     
 ]
 
