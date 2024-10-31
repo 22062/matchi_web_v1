@@ -16,7 +16,7 @@ from .serializers import DemandeReservationSerializer, ReservationSerializer
 from django.views.decorators.http import require_POST
 import json
 import hashlib
-from .serializers import WilayeSerializer
+from .serializers import WilayeSerializer,ReservationSerializer_client
 from rest_framework import generics
 
 from .models import Wilaye, Moughataa,Academie
@@ -688,24 +688,43 @@ def list_reservations(request):
     
 @api_view(['PATCH'])
 def update_player(request, player_id):
-    print(request.data)
     try:
         joueur = get_object_or_404(Joueurs, pk=player_id)
-        # print(request.data)
-        # Utilisation de request.data pour récupérer les données JSON
-        serializer = JoueurSerializer(instance=joueur, data=request.data, partial=True)
-        
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'Player updated successfully'})
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
+        # Mise à jour des champs avec les données fournies dans la requête
+        if 'nom_joueur' in request.data:
+            joueur.nom_joueur = request.data['nom_joueur']
+        if 'prenom_joueur' in request.data:
+            joueur.prenom_joueur = request.data['prenom_joueur']
+        if 'numero_telephone' in request.data:
+            joueur.numero_telephone = request.data['numero_telephone']
+        if 'poste' in request.data:
+            joueur.poste = request.data['poste']
+        if 'age' in request.data:
+            joueur.age = request.data['age']
+        if 'height' in request.data:
+            joueur.height = request.data['height']
+        if 'weight' in request.data:
+            joueur.weight = request.data['weight']
+        if 'wilaye' in request.data:
+            wilaye_id = request.data['wilaye']
+            joueur.wilaye = get_object_or_404(Wilaye, pk=wilaye_id)
+        if 'moughataa' in request.data:
+            moughataa_id = request.data['moughataa']
+            joueur.moughataa = get_object_or_404(Moughataa, pk=moughataa_id)
+
+        # Sauvegarder les changements
+        joueur.save()
+
+        return Response({'message': 'Player updated successfully'}, status=status.HTTP_200_OK)
+
     except Joueurs.DoesNotExist:
         return Response({'error': 'Player not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         print(e)
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
       
 
 import os
@@ -714,37 +733,28 @@ from django.utils.crypto import get_random_string
 
 @api_view(['POST'])
 def uploadProfileImage(request, player_id):
-    print(request.data)
+    print("Données de la requête:", request.data)
+    print("Fichiers de la requête:", request.FILES)
+
     try:
-        # Retrieve the player instance by ID
         player = Joueurs.objects.get(pk=player_id)
-        old_url = player.photo_de_profile.path
+        print("Joueur trouvé:", player)
 
-        # Delete the old image file from the server if it exists
-        if os.path.exists(old_url):
-            os.remove(old_url)
-
-        # Access the uploaded file
-        image = request.FILES.get('image')
-
-        if not image:
+        image = request.FILES.get('photo_de_profile')
+        if image:
+            print("Image reçue:", image)
+            player.photo_de_profile = image
+            player.save()
+            print("Image enregistrée:", player.photo_de_profile.url)
+            return Response({'message': 'Image uploaded successfully'}, status=status.HTTP_200_OK)
+        else:
+            print("Erreur : image manquante")
             return Response({'error': 'No image uploaded'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Generate a new filename using player_id and a random string
-        extension = os.path.splitext(image.name)[1]  # Get the file extension
-        new_filename = f"{player_id}_{get_random_string(8)}{extension}"
-
-        # Save the file with the new name
-        image.name = new_filename
-        player.photo_de_profile = image
-        # player.image=new_filename
-        player.save()
-
-        return Response({'message': 'Image uploaded successfully', 'filename': new_filename}, status=status.HTTP_200_OK)
     except Joueurs.DoesNotExist:
+        print("Erreur : joueur non trouvé")
         return Response({'error': 'Player not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        print(e)
+        print("Erreur :", e)
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -1175,13 +1185,14 @@ def heures_disponibles_for_player(request, terrain_id, date):
         print(f"Heure d'ouverture: {heure_ouverture}, Heure de fermeture: {heure_fermeture}")
         print(f"Heure actuelle: {current_time}")
 
-        # Check today's date and whether hours need to be restricted based on the current time
+        # Vérification de la date actuelle et restriction des heures basées sur l'heure actuelle
         if date_obj == datetime.now().date():
-            start_hour = max(heure_ouverture.hour, current_time.hour)
+            # Démarrer à l'heure actuelle si elle est après l'heure d'ouverture
+            start_hour = max(heure_ouverture.hour, current_time.hour + (current_time.minute > 0))
         else:
             start_hour = heure_ouverture.hour
 
-        # Handle case where closing time is after midnight
+        # Gestion du cas où l'heure de fermeture est après minuit
         if heure_fermeture.hour < heure_ouverture.hour:
             print("Closing time is after midnight")
             hours_before_midnight = set(range(start_hour, 24))  # From opening to midnight
@@ -1189,6 +1200,10 @@ def heures_disponibles_for_player(request, terrain_id, date):
             all_hours = hours_before_midnight.union(hours_after_midnight)
         else:
             all_hours = set(range(start_hour, heure_fermeture.hour))
+
+        # Exclure l'heure actuelle si c'est le jour même
+        if date_obj == datetime.now().date():
+            all_hours.discard(current_time.hour)
 
         # Debugging all_hours to check the number of hours
         print(f"Generated all_hours: {all_hours}")
@@ -1251,4 +1266,60 @@ def get_reservations_par_joueur(request, joueur_id):
     ]
     
     return JsonResponse({'joueur': joueur.nom_joueur, 'reservations': reservations_data})
+  
+class ClientReservationsView(APIView):
+    def get(self, request, client_id):
+        try:
+            client = Client.objects.get(id=client_id)
+            reservations = Reservations.objects.filter(terrain__client=client)
+            serializer = ReservationSerializer_client(reservations, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Client.DoesNotExist:
+            return Response({"error": "Client not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class DeletePlayerView(APIView):
+  # Assurez-vous que l'utilisateur est authentifié
+
+    def delete(self, request, player_id):
+        try:
+            player = Joueurs.objects.get(id=player_id)
+            player.delete()
+            return Response({"message": "Joueur supprimé avec succès."}, status=status.HTTP_204_NO_CONTENT)
+        except Joueurs.DoesNotExist:
+            return Response({"error": "Joueur non trouvé."}, status=status.HTTP_404_NOT_FOUND)
+
+class DemandeReservationViewSet(viewsets.ViewSet):
+    def list(self, request, joueur_id=None):
+        # Récupérer les demandes de réservation acceptées pour un joueur
+        demandes = DemandeReservation.objects.filter(joueur_id=joueur_id, status='Acceptée').order_by('-date_demande')
+        
+        # Créer une liste de dictionnaires pour les demandes
+        demandes_data = []
+        for demande in demandes:
+            demandes_data.append({
+                'id': demande.id,
+                'terrain_ar': demande.terrain.nom_ar,
+                'terrain_fr': demande.terrain.nom_fr,
+                # ou utilisez d'autres champs que vous souhaitez afficher
+                'joueur': demande.joueur.id,
+                'date_reservation': demande.date_reservation.isoformat(),
+                'heure_debut': demande.heure_debut.strftime('%H:%M'),
+                'heure_fin': demande.heure_fin.strftime('%H:%M'),
+                'status': demande.status,
+                'date_demande': demande.date_demande.isoformat(),
+                'read': demande.read
+            })
+
+        return JsonResponse(demandes_data, safe=False)
+
+    def mark_as_read(self, request, pk=None):
+        # Marquer une demande comme lue
+        try:
+            demande = DemandeReservation.objects.get(pk=pk)
+            demande.read = True
+            demande.save()
+            return JsonResponse({'status': 'Demande marquée comme lue'})
+        except DemandeReservation.DoesNotExist:
+            return JsonResponse({'error': 'Demande non trouvée'}, status=404)
+
 

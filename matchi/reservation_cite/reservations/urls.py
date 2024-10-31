@@ -90,6 +90,10 @@ urlpatterns = [
     path('client/<int:client_id>/reservations_confirmees/', mobile.nombre_reservations_confirmees, name='reservations_confirmees'),
     path('DemandsCount', mobile.DemandsCount, name='/DemandsCount'),
     path('reservations/joueur/<int:joueur_id>/', mobile.get_reservations_par_joueur, name='get_reservations_par_joueur'),
+    path('clients/<int:client_id>/reservations/', mobile.ClientReservationsView.as_view(), name='client-reservations'),
+    path('delete-player/<int:player_id>/', mobile.DeletePlayerView.as_view(), name='delete_player'),
+    path('demandes/<int:joueur_id>/', mobile.DemandeReservationViewSet.as_view({'get': 'list'}), name='demande-list'),
+    path('demandes/read/<int:pk>/', mobile.DemandeReservationViewSet.as_view({'post': 'mark_as_read'}), name='demande-mark-as-read'),
     
 ]
 

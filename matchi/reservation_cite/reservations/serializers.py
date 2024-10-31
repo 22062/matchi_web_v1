@@ -75,3 +75,10 @@ class DemandeReservationSerializer(serializers.ModelSerializer):
     class Meta:
       model = DemandeReservation
       fields = ['id', 'joueur','date_demande', 'heure_debut', 'heure_fin', 'status']
+      
+class ReservationSerializer_client(serializers.ModelSerializer):
+    joueur = JoueurSerializer()  # Inclure le joueur lié à la réservation
+    
+    class Meta:
+        model = Reservations
+        fields = ['date_reservation', 'heure_debut', 'heure_fin', 'joueur']

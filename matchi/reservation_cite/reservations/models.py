@@ -118,6 +118,7 @@ class DemandeReservation(models.Model):
     heure_fin = models.TimeField()
     status = models.CharField(max_length=20, choices=[('En attente', 'En attente'), ('Acceptée', 'Acceptée'), ('Refusée', 'Refusée')], default='En attente')
     date_demande = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)  # Nouveau champ pour gérer les notifications non lues
     
     def __str__(self):
         return f"Demande de {self.joueur.nom_joueur} pour {self.terrain.nom_fr}"
