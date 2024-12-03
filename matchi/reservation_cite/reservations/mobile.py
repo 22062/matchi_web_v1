@@ -171,6 +171,7 @@ def changePassword(request):
 
 @api_view(['POST'])
 def add_player(request):
+    
     numero_telephone = request.data.get('numero_telephone')
     password = request.data.get('password')
     nom_joueur = request.data.get('nom')
@@ -1024,7 +1025,14 @@ def send_notification_to_client(fcm_token, joueur_name, terrain_name):
         print(f"Échec de l'envoi de la notification: {response.status_code} - {response.text}")
 class DemandeReservationClientView(APIView):
     def get(self, request, client_id):
+        print("DemandeReservationClientView function  ==================")
         # Récupérer le client basé sur l'ID fourni
+        client = get_object_or_404(Client, id=client_id)
+        # terrin = Terrains.objects.get(client=client)
+        
+        # Récupérer toutes les demandes de réservation pour les terrains du client
+        # demandes = DemandeReservation.objects.filter(terrain=terrin)
+
         client = get_object_or_404(Client, id=client_id)
         
         # Récupérer toutes les demandes de réservation pour les terrains du client
@@ -1032,7 +1040,7 @@ class DemandeReservationClientView(APIView):
         
         # Sérialiser les données
         serializer = DemandeReservationSerializer(demandes, many=True)
-        
+        print("respnse : ",serializer.data)
         # Retourner les données sérialisées
         return Response(serializer.data, status=status.HTTP_200_OK)
 @csrf_exempt
